@@ -5,8 +5,9 @@ This guide covers redeploying the **FastAPI backend** (Render + Postgres) and re
 real printing/PDF, cash-tender/change, and the offline sales queue.
 
 > **Architecture at a glance**
-> - **Client**: Expo SDK 54 app (`kavimaheslabs/`), talks to the backend over HTTPS.
-> - **Backend**: FastAPI + SQLAlchemy (`kavimaheslabs/backend/`), deployed on Render at
+>
+> - **Client**: Expo SDK 57 app (`loxico/`), talks to the backend over HTTPS.
+> - **Backend**: FastAPI + SQLAlchemy (`loxico/backend/`), deployed on Render at
 >   `https://possystem.zynocraftx.dev` (see `constants/config.ts`).
 > - **Database**: PostgreSQL on Render. (Local dev defaults to MySQL — see the note at the end.)
 > - **Repo**: GitHub `Kaviyarasu24/POS`, default branch `main`.
@@ -24,17 +25,21 @@ alongside this deploy:
    user). Copy the new connection string.
 
 2. **Set a fresh JWT secret.** Generate one:
+
    ```bash
    python -c "import secrets; print(secrets.token_urlsafe(48))"
    ```
+
    (Rotating this logs everyone out — the client detects the 401 and routes to login, so it's safe.)
 
 3. **Stop tracking the file** so future pushes don't re-expose it:
+
    ```bash
-   cd kavimaheslabs
+   cd loxico
    git rm --cached backend/.env
    git commit -m "Stop tracking backend/.env (secrets moved to env vars)"
    ```
+
    `.gitignore` already ignores `.env`, so once untracked it stays out.
 
 4. **Scrub it from history** (optional but recommended, since it's already on GitHub). Use
@@ -50,33 +55,38 @@ Secrets live **only** in Render's environment variables (below) and in a local, 
 ## 1. Backend → Render
 
 ### 1a. Service settings
+
 If the service already exists, verify these; if creating fresh, set them:
 
-| Setting | Value |
-|---|---|
-| Root directory | `backend` |
-| Runtime | Python 3 |
-| Build command | `pip install -r requirements.txt` |
-| Start command | `uvicorn main:app --host 0.0.0.0 --port $PORT` |
-| Auto-deploy | On push to `main` (or deploy manually) |
+| Setting        | Value                                          |
+| -------------- | ---------------------------------------------- |
+| Root directory | `backend`                                      |
+| Runtime        | Python 3                                       |
+| Build command  | `pip install -r requirements.txt`              |
+| Start command  | `uvicorn main:app --host 0.0.0.0 --port $PORT` |
+| Auto-deploy    | On push to `main` (or deploy manually)         |
 
 `$PORT` is injected by Render — don't hard-code it.
 
 ### 1b. Environment variables
+
 Set these in Render → **Environment** (values from section 0):
 
-| Key | Required | Notes |
-|---|---|---|
-| `DATABASE_URL` | ✅ | The rotated Postgres URL. `postgres://` is auto-normalized to `postgresql://` in `database.py`. |
-| `JWT_SECRET_KEY` | ✅ | The rotated random string. If unset, the server uses an ephemeral key and **all tokens die on every restart**. |
-| `JWT_EXPIRE_DAYS` | optional | Token lifetime in days (default `7`). |
+| Key               | Required | Notes                                                                                                                  |
+| ----------------- | -------- | ---------------------------------------------------------------------------------------------------------------------- |
+| `DATABASE_URL`    | ✅       | The rotated Postgres URL. `postgres://` is auto-normalized to `postgresql://` in `database.py`.                        |
+| `JWT_SECRET_KEY`  | ✅       | The rotated random string. If unset, the server uses an ephemeral key and **all tokens die on every restart**.         |
+| `JWT_EXPIRE_DAYS` | optional | Token lifetime in days (default `7`).                                                                                  |
 | `ALLOWED_ORIGINS` | web only | Comma-separated browser origins. Native builds ignore CORS; safe to leave at defaults if you only ship the mobile app. |
 
 ### 1c. Deploy
+
 Push to `main` (auto-deploy) or click **Manual Deploy → Deploy latest commit**.
 
 ### 1d. The database migration runs automatically on boot
+
 On startup `main.py`:
+
 1. `models.Base.metadata.create_all()` — creates the **new** `customers` and `credit_entries` tables.
 2. `_ensure_transaction_customer_columns()` — adds `customer_id`, `customer_name`, `customer_phone`
    to the existing `transactions` table via `ALTER TABLE … ADD COLUMN` (guarded by an inspector
@@ -90,6 +100,7 @@ endpoints will fail until it's resolved — check the DB user has `ALTER` privil
 > data if anything looks wrong.
 
 ### 1e. Verify
+
 ```bash
 # Health
 curl https://pos-x2jt.onrender.com/
@@ -97,6 +108,7 @@ curl https://pos-x2jt.onrender.com/
 # Auth-gated endpoints should 401 without a token (proves they're wired + protected)
 curl -i https://pos-x2jt.onrender.com/api/customers
 ```
+
 Then log in from the app and confirm a credit sale + payment (see section 3).
 
 ---
@@ -107,7 +119,7 @@ The client already points at the Render URL (`constants/config.ts` → `API_BASE
 change needed unless the backend URL changed.
 
 ```bash
-cd kavimaheslabs
+cd loxico
 npm install
 
 # Internal test APK

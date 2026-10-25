@@ -9,6 +9,7 @@ Built with **React Native (Expo SDK 57)** for cross-platform mobile and web, bac
 ## 🌟 Key Features
 
 ### 🛒 Point of Sale & Billing Register
+
 - **Fast Checkout Register**: Interactive product grid with category filtering, real-time search, and instant cart management.
 - **Barcode & QR Scanner**: Integrated camera barcode scanner (`expo-camera`) for rapid scanning and automatic item addition.
 - **Fractional / Loose Units**: Full support for weighted and liquid items (`kg`, `g`, `l`, `ml`) with quick increment/decrement buttons.
@@ -17,36 +18,43 @@ Built with **React Native (Expo SDK 57)** for cross-platform mobile and web, bac
 - **Discounts & Taxes**: Flexible percentage or flat discount calculations with automatic intra-state GST splits (CGST & SGST).
 
 ### 🖨️ Thermal Receipt Printing & PDF Export
+
 - **Thermal Receipt Layout**: Formats receipts tailored for standard 58mm / 80mm thermal receipt printers.
 - **Direct Printing & PDF**: Seamless Bluetooth/network printer integration via `expo-print` and instant PDF sharing via `expo-sharing`.
 - **Custom Shop Header & Footer**: Displays store name, address, phone, GST number, cashier name, customer info, and custom greeting.
 
 ### 📶 Offline-First Sales Queue
+
 - **Seamless Offline Billing**: When network drops or server is unreachable, sales continue locally without blocking the register.
 - **Automatic Replay Sync**: Sales are queued in local persistent storage (`AsyncStorage`) with `OFFLINE-...` identifiers and automatically synchronized chronologically when internet reconnects.
 
 ### 📦 Inventory & Catalog Management
+
 - **Live Stock Tracking**: Real-time stock counts, out-of-stock badges, and customizable low-stock threshold alerts.
 - **Background Push Notifications**: Automated local notifications (`expo-notifications`) alerting store staff when items run low.
 - **Quick Restock Modal**: Instant stock replenishment with preset unit increments (+5, +10, +25, +50, +100).
 - **Soft Delete & SKU Tombstoning**: Deleted products preserve historical invoice links and prevent foreign-key constraints.
 
 ### 📥 Bulk Excel / CSV Import & Export
+
 - **Excel & CSV Import**: Bulk add products with SheetJS (`xlsx`) and `papaparse`.
 - **Download Template / Catalog**: Pre-built Excel template download with data validations and support for **`Image URL`**.
 - **Wireless Barcode Scanning Guide**: Complete guide on preparing Excel sheets using your smartphone or handheld scanner: [BULK_IMPORT_GUIDE.md](file:///d:/zynocraft/POS/BULK_IMPORT_GUIDE.md).
 
 ### 📒 Customer Khata Book (Udhaar / Credit Ledger)
+
 - **Credit Customer Accounts**: Maintain customer profiles with cumulative outstanding balances.
 - **Automated Ledger Entries**: Credit purchases automatically record `DEBIT` entries; payments record `CREDIT` entries.
 - **Repayment Tracking**: Record partial or full cash/UPI repayments with custom payment notes.
 
 ### 📊 Dashboard & Business Reports
+
 - **Real-Time KPIs**: Today's revenue, yesterday's comparison, percentage growth, order volume, and net profit margin.
 - **7-Day Trend Chart**: Interactive revenue visualization using smooth SVG bezier curves (`react-native-svg`).
-- **GST & Sales Reports**: Date range presets (*Today*, *7 Days*, *30 Days*, *This Month*), CGST/SGST tax breakdown, and CSV/PDF export.
+- **GST & Sales Reports**: Date range presets (_Today_, _7 Days_, _30 Days_, _This Month_), CGST/SGST tax breakdown, and CSV/PDF export.
 
 ### 👥 Multi-Tenancy & Access Control
+
 - **Store Join Codes**: Each store has a unique alphanumeric ID (e.g., `TGMAEX`). Staff can join using the store join code.
 - **Role-Based Access**: Multi-user support with `owner`, `manager`, and `cashier` permissions.
 - **Secure Authentication**: JWT bearer tokens stored securely via `expo-secure-store` on native devices. Passwords hashed with **Bcrypt**.
@@ -55,21 +63,21 @@ Built with **React Native (Expo SDK 57)** for cross-platform mobile and web, bac
 
 ## 🛠️ Technology Stack
 
-| Layer | Technologies |
-|---|---|
-| **Mobile & Web Client** | React Native 0.86.3, Expo SDK 57, React 19.2, TypeScript, Expo Router |
-| **Native Modules** | `expo-print`, `expo-sharing`, `expo-camera`, `expo-notifications`, `expo-secure-store`, `expo-file-system` |
-| **Backend API** | Python 3.11+, FastAPI, Uvicorn, SQLAlchemy ORM, Pydantic v2 |
-| **Database** | PostgreSQL (Production on Render) / SQLite (Local development) |
-| **Authentication** | JWT (HS256) with Bearer token authentication, Passlib (Bcrypt) |
-| **Spreadsheets** | SheetJS (`xlsx`), `papaparse`, `exceljs` |
+| Layer                   | Technologies                                                                                               |
+| ----------------------- | ---------------------------------------------------------------------------------------------------------- |
+| **Mobile & Web Client** | React Native 0.86.3, Expo SDK 57, React 19.2, TypeScript, Expo Router                                      |
+| **Native Modules**      | `expo-print`, `expo-sharing`, `expo-camera`, `expo-notifications`, `expo-secure-store`, `expo-file-system` |
+| **Backend API**         | Python 3.11+, FastAPI, Uvicorn, SQLAlchemy ORM, Pydantic v2                                                |
+| **Database**            | PostgreSQL (Production on Render) / SQLite (Local development)                                             |
+| **Authentication**      | JWT (HS256) with Bearer token authentication, Passlib (Bcrypt)                                             |
+| **Spreadsheets**        | SheetJS (`xlsx`), `papaparse`, `exceljs`                                                                   |
 
 ---
 
 ## 📂 Project Structure
 
 ```
-kavimaheslabs/
+loxico/
 ├── app/                           # Expo Router screens (file-based navigation)
 │   ├── _layout.tsx                # Root stack navigator with global auth guard
 │   ├── index.tsx                  # Animated splash / bootstrap screen
@@ -113,6 +121,7 @@ kavimaheslabs/
 ## 🚀 Getting Started
 
 ### Prerequisites
+
 - **Node.js**: v18 or later
 - **npm** or **yarn**
 - **Python**: v3.10 or later (for backend)
@@ -123,16 +132,19 @@ kavimaheslabs/
 ### 1. Frontend Setup (Client)
 
 1. Navigate to the project directory:
+
    ```bash
-   cd kavimaheslabs
+   cd loxico
    ```
 
 2. Install dependencies:
+
    ```bash
    npm install
    ```
 
 3. Start the Expo development server:
+
    ```bash
    npx expo start
    ```
@@ -147,11 +159,13 @@ kavimaheslabs/
 ### 2. Backend Setup (API Service)
 
 1. Open a new terminal and navigate to the `backend/` directory:
+
    ```bash
-   cd kavimaheslabs/backend
+   cd loxico/backend
    ```
 
 2. Create and activate a Python virtual environment:
+
    ```bash
    # Windows (PowerShell)
    python -m venv venv
@@ -163,11 +177,13 @@ kavimaheslabs/
    ```
 
 3. Install dependencies:
+
    ```bash
    pip install -r requirements.txt
    ```
 
 4. Configure environment variables (create a `.env` file from `.env.example`):
+
    ```ini
    DATABASE_URL=sqlite:///./pos_database.db
    JWT_SECRET_KEY=your-super-secure-random-secret-key
@@ -177,6 +193,7 @@ kavimaheslabs/
    ```
 
 5. Run the FastAPI development server:
+
    ```bash
    uvicorn main:app --host 0.0.0.0 --port 8000 --reload
    ```
@@ -190,34 +207,38 @@ kavimaheslabs/
 ## ⚙️ Configuration & Environment
 
 ### Frontend Configuration ([`constants/config.ts`](constants/config.ts))
+
 Configure the backend server URL for the client:
+
 ```typescript
-export const API_BASE_URL = 'https://possystem.zynocraftx.dev';
+export const API_BASE_URL = "https://possystem.zynocraftx.dev";
 ```
 
 ### Backend Environment Variables
-| Variable | Required | Description | Default |
-|---|---|---|---|
-| `DATABASE_URL` | Yes | PostgreSQL connection string or SQLite path | `sqlite:///./pos_database.db` |
-| `JWT_SECRET_KEY` | Yes (Prod) | Secret key used to sign JWT bearer tokens | Ephemeral dev key |
-| `JWT_EXPIRE_DAYS` | No | Token lifetime in days | `7` |
-| `ALLOWED_ORIGINS` | No | Comma-separated CORS origins for web clients | `localhost:8081,localhost:3000` |
-| `APP_TIMEZONE` | No | Business timezone for daily sales/metrics | `Asia/Kolkata` |
+
+| Variable          | Required   | Description                                  | Default                         |
+| ----------------- | ---------- | -------------------------------------------- | ------------------------------- |
+| `DATABASE_URL`    | Yes        | PostgreSQL connection string or SQLite path  | `sqlite:///./pos_database.db`   |
+| `JWT_SECRET_KEY`  | Yes (Prod) | Secret key used to sign JWT bearer tokens    | Ephemeral dev key               |
+| `JWT_EXPIRE_DAYS` | No         | Token lifetime in days                       | `7`                             |
+| `ALLOWED_ORIGINS` | No         | Comma-separated CORS origins for web clients | `localhost:8081,localhost:3000` |
+| `APP_TIMEZONE`    | No         | Business timezone for daily sales/metrics    | `Asia/Kolkata`                  |
 
 ---
 
 ## 📦 Useful Scripts
 
-| Script | Command | Description |
-|---|---|---|
-| **Start Expo** | `npm start` | Launches Metro bundler for Expo |
-| **Android** | `npm run android` | Launches app on connected Android device/emulator |
-| **iOS** | `npm run ios` | Launches app on iOS simulator |
-| **Web** | `npm run web` | Launches web application in browser |
-| **Lint** | `npm run lint` | Runs ESLint checks |
+| Script                | Command                     | Description                                                        |
+| --------------------- | --------------------------- | ------------------------------------------------------------------ |
+| **Start Expo**        | `npm start`                 | Launches Metro bundler for Expo                                    |
+| **Android**           | `npm run android`           | Launches app on connected Android device/emulator                  |
+| **iOS**               | `npm run ios`               | Launches app on iOS simulator                                      |
+| **Web**               | `npm run web`               | Launches web application in browser                                |
+| **Lint**              | `npm run lint`              | Runs ESLint checks                                                 |
 | **Generate Template** | `npm run generate:template` | Rebuilds `assets/products-template.xlsx` with dropdown validations |
 
 ---
 
 ## 📄 License
-This project is proprietary and confidential. Developed by **kavimaheslabs**. All rights reserved.
+
+This project is proprietary and confidential. Developed by **loxico**. All rights reserved.
