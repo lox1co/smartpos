@@ -4,7 +4,10 @@ import { SafeAreaProvider, initialWindowMetrics } from 'react-native-safe-area-c
 import 'react-native-reanimated';
 import { LogBox } from 'react-native';
 import { useEffect } from 'react';
-import { store } from '@/constants/store';
+import '@/i18n';
+import { initializeDatabase } from '@/db/init';
+import { useSessionStore } from '@/stores/session-store';
+import { syncCatalogFromServer, startSyncWorker, stopSyncWorker } from '@/services/sync';
 
 LogBox.ignoreLogs([
   'expo-notifications: Android Push notifications',
@@ -12,29 +15,46 @@ LogBox.ignoreLogs([
   'Android Push notifications (remote notifications) functionality provided by expo-notifications was removed',
 ]);
 
-// Public routes that should never trigger a redirect loop.
 const PUBLIC_ROUTES = ['index', 'login', 'signup'];
 
 export default function RootLayout() {
   const router = useRouter();
   const segments = useSegments();
 
-  // ─── Fix 3: Global auth guard ────────────────────────────────────────────
-  // Subscribes at the root level so every screen — including non-tab stack
-  // screens (transactions, reports, customers) — is protected. When
-  // handleUnauthorized() fires notify() from the store (e.g. a 401 response),
-  // this listener immediately routes back to /login.
+  const currentUser = useSessionStore((state) => state.currentUser);
+  const isHydrated = useSessionStore((state) => state.isHydrated);
+
   useEffect(() => {
-    const checkAuth = () => {
-      const currentRoute = segments[segments.length - 1] ?? '';
-      const isPublic = PUBLIC_ROUTES.includes(currentRoute);
-      if (!isPublic && !store.currentUser?.token) {
-        router.replace('/login');
-      }
+    initializeDatabase();
+  }, []);
+
+  useEffect(() => {
+    const token = currentUser?.token;
+    const storeId = currentUser?.storeId;
+
+    if (token && storeId) {
+      startSyncWorker(storeId, token);
+      void syncCatalogFromServer(token).catch(() => {});
+    } else {
+      stopSyncWorker();
+    }
+
+    return () => {
+      stopSyncWorker();
     };
-    const unsubscribe = store.subscribe(checkAuth);
-    return unsubscribe;
-  }, [router, segments]);
+  }, [currentUser?.token, currentUser?.storeId]);
+
+  useEffect(() => {
+    if (!isHydrated) return;
+
+    const currentRoute = segments[segments.length - 1] ?? '';
+    const isPublic = PUBLIC_ROUTES.includes(currentRoute);
+    const token = currentUser?.token;
+
+    if (!isPublic && !token) {
+      router.replace('/login');
+    }
+  }, [router, segments, currentUser?.token, isHydrated]);
 
   return (
     <SafeAreaProvider initialMetrics={initialWindowMetrics}>
@@ -61,7 +81,6 @@ export default function RootLayout() {
         <Stack.Screen name="shop_email" />
         <Stack.Screen name="settings" />
       </Stack>
-      {/* Dark icons for the app's light backgrounds. */}
       <StatusBar style="dark" />
     </SafeAreaProvider>
   );

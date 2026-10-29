@@ -54,6 +54,8 @@ storesRouter.put("/stores/:store_id", requireManager, async (request, response) 
     ...(input.address !== undefined ? { address: input.address } : {}),
     ...(input.tax_enabled !== undefined ? { taxEnabled: input.tax_enabled } : {}),
     ...(input.tax_rate !== undefined ? { taxRate: input.tax_rate } : {}),
+    ...(input.currency_code !== undefined ? { currencyCode: input.currency_code } : {}),
+    ...(input.currency_symbol !== undefined ? { currencySymbol: input.currency_symbol } : {}),
   };
   response.json(storeResponse(await prisma.store.update({ where: { id: storeId }, data })));
 });

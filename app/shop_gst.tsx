@@ -15,41 +15,35 @@ import {
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { MaterialIcons } from '@expo/vector-icons';
-import { store } from '@/constants/store';
+import { useProfile } from '@/hooks/use-profile';
 
 export default function ShopGstScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
-  const userSession = store.currentUser;
+  const { user, saveProfile, toastMsg, showToast } = useProfile();
 
-  const [gstNumber, setGstNumber] = useState(userSession?.gstNumber || '');
+  const [gstNumber, setGstNumber] = useState(user?.gstNumber || '');
   const [saving, setSaving] = useState(false);
-  const [toastMsg, setToastMsg] = useState<string | null>(null);
 
   useEffect(() => {
-    if (userSession?.gstNumber) {
-      setGstNumber(userSession.gstNumber);
+    if (user?.gstNumber) {
+      setGstNumber(user.gstNumber);
     }
-  }, [userSession]);
-
-  const showToast = (msg: string) => {
-    setToastMsg(msg);
-    setTimeout(() => setToastMsg(null), 2500);
-  };
+  }, [user]);
 
   const handleSave = async () => {
     Keyboard.dismiss();
     setSaving(true);
     try {
-      await store.updateUserProfile({
+      await saveProfile({
         gstNumber: gstNumber.trim().toUpperCase(),
       });
       showToast('GST Number updated!');
       setTimeout(() => {
         router.back();
       }, 500);
-    } catch (err: any) {
-      Alert.alert('Update Failed', err.message || 'Could not update GST Number.');
+    } catch {
+      Alert.alert('Update Failed', 'Could not update GST Number.');
     } finally {
       setSaving(false);
     }
@@ -57,7 +51,6 @@ export default function ShopGstScreen() {
 
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
-      {/* Toast */}
       {toastMsg && (
         <View style={styles.floatingToast}>
           <MaterialIcons name="check-circle" size={18} color="#22c55e" />
@@ -65,7 +58,6 @@ export default function ShopGstScreen() {
         </View>
       )}
 
-      {/* Header */}
       <View style={styles.header}>
         <TouchableOpacity onPress={() => router.back()} style={styles.backBtn} activeOpacity={0.7}>
           <MaterialIcons name="arrow-back" size={22} color="#0f172a" />
@@ -91,7 +83,6 @@ export default function ShopGstScreen() {
           style={styles.contentWrapper}
         >
           <View style={styles.body}>
-            {/* Banner */}
             <View style={styles.banner}>
               <View style={styles.iconCircle}>
                 <MaterialIcons name="receipt-long" size={26} color="#4f46e5" />
@@ -104,7 +95,6 @@ export default function ShopGstScreen() {
               </View>
             </View>
 
-            {/* Input Card */}
             <Text style={styles.sectionHeading}>GST Identification Number</Text>
             <View style={styles.card}>
               <View style={styles.fieldLabelRow}>
@@ -131,7 +121,6 @@ export default function ShopGstScreen() {
               </View>
             </View>
 
-            {/* Benefits Card */}
             <View style={styles.infoCard}>
               <View style={styles.infoRow}>
                 <MaterialIcons name="print" size={18} color="#004ac6" />
@@ -144,7 +133,6 @@ export default function ShopGstScreen() {
             </View>
           </View>
 
-          {/* Bottom Fixed Save Button */}
           <View style={[styles.bottomBar, { paddingBottom: Math.max(insets.bottom, 16) }]}>
             <TouchableOpacity
               style={[styles.saveButton, saving && { opacity: 0.75 }]}

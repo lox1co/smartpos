@@ -15,27 +15,21 @@ import {
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { MaterialIcons } from '@expo/vector-icons';
-import { store } from '@/constants/store';
+import { useProfile } from '@/hooks/use-profile';
 
 export default function ShopEmailScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
-  const userSession = store.currentUser;
+  const { user, saveProfile, toastMsg, showToast } = useProfile();
 
-  const [email, setEmail] = useState(userSession?.email || '');
+  const [email, setEmail] = useState(user?.email || '');
   const [saving, setSaving] = useState(false);
-  const [toastMsg, setToastMsg] = useState<string | null>(null);
 
   useEffect(() => {
-    if (userSession?.email) {
-      setEmail(userSession.email);
+    if (user?.email) {
+      setEmail(user.email);
     }
-  }, [userSession]);
-
-  const showToast = (msg: string) => {
-    setToastMsg(msg);
-    setTimeout(() => setToastMsg(null), 2500);
-  };
+  }, [user]);
 
   const handleSave = async () => {
     Keyboard.dismiss();
@@ -47,15 +41,15 @@ export default function ShopEmailScreen() {
 
     setSaving(true);
     try {
-      await store.updateUserProfile({
+      await saveProfile({
         email: cleanEmail,
       });
       showToast('Contact email updated!');
       setTimeout(() => {
         router.back();
       }, 500);
-    } catch (err: any) {
-      Alert.alert('Update Failed', err.message || 'Could not update contact email.');
+    } catch {
+      Alert.alert('Update Failed', 'Could not update contact email.');
     } finally {
       setSaving(false);
     }
@@ -63,7 +57,6 @@ export default function ShopEmailScreen() {
 
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
-      {/* Toast Notification */}
       {toastMsg && (
         <View style={styles.floatingToast}>
           <MaterialIcons name="check-circle" size={18} color="#22c55e" />
@@ -71,7 +64,6 @@ export default function ShopEmailScreen() {
         </View>
       )}
 
-      {/* Header */}
       <View style={styles.header}>
         <TouchableOpacity onPress={() => router.back()} style={styles.backBtn} activeOpacity={0.7}>
           <MaterialIcons name="arrow-back" size={22} color="#0f172a" />
@@ -97,7 +89,6 @@ export default function ShopEmailScreen() {
           style={styles.contentWrapper}
         >
           <View style={styles.body}>
-            {/* Banner */}
             <View style={styles.banner}>
               <View style={styles.iconCircle}>
                 <MaterialIcons name="alternate-email" size={26} color="#0284c7" />
@@ -110,7 +101,6 @@ export default function ShopEmailScreen() {
               </View>
             </View>
 
-            {/* Input Card */}
             <Text style={styles.sectionHeading}>Store Email Address</Text>
             <View style={styles.card}>
               <View style={styles.fieldLabelRow}>
@@ -134,7 +124,6 @@ export default function ShopEmailScreen() {
               </Text>
             </View>
 
-            {/* Uses list */}
             <View style={styles.infoCard}>
               <View style={styles.infoRow}>
                 <MaterialIcons name="mark-email-read" size={18} color="#004ac6" />
@@ -147,7 +136,6 @@ export default function ShopEmailScreen() {
             </View>
           </View>
 
-          {/* Bottom Fixed Save Button */}
           <View style={[styles.bottomBar, { paddingBottom: Math.max(insets.bottom, 16) }]}>
             <TouchableOpacity
               style={[styles.saveButton, saving && { opacity: 0.75 }]}

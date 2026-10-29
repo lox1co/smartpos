@@ -15,44 +15,38 @@ import {
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { MaterialIcons } from '@expo/vector-icons';
-import { store } from '@/constants/store';
+import { useProfile } from '@/hooks/use-profile';
 
 export default function ShopAddressScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
-  const userSession = store.currentUser;
+  const { user, saveProfile, toastMsg, showToast } = useProfile();
 
-  const [businessAddress, setBusinessAddress] = useState(userSession?.businessAddress || '');
-  const [shopName] = useState(userSession?.shopName || 'SmartPOS Store');
-  const [phone] = useState(userSession?.phone || '');
-  const [gstNumber] = useState(userSession?.gstNumber || '');
+  const [businessAddress, setBusinessAddress] = useState(user?.businessAddress || '');
+  const [shopName] = useState(user?.shopName || 'SmartPOS Store');
+  const [phone] = useState(user?.phone || '');
+  const [gstNumber] = useState(user?.gstNumber || '');
   const [saving, setSaving] = useState(false);
-  const [toastMsg, setToastMsg] = useState<string | null>(null);
 
   useEffect(() => {
-    if (userSession?.businessAddress) {
-      setBusinessAddress(userSession.businessAddress);
+    if (user?.businessAddress) {
+      setBusinessAddress(user.businessAddress);
     }
-  }, [userSession]);
-
-  const showToast = (msg: string) => {
-    setToastMsg(msg);
-    setTimeout(() => setToastMsg(null), 2500);
-  };
+  }, [user]);
 
   const handleSave = async () => {
     Keyboard.dismiss();
     setSaving(true);
     try {
-      await store.updateUserProfile({
+      await saveProfile({
         businessAddress: businessAddress.trim(),
       });
       showToast('Store address updated!');
       setTimeout(() => {
         router.back();
       }, 500);
-    } catch (err: any) {
-      Alert.alert('Update Failed', err.message || 'Could not update address.');
+    } catch {
+      Alert.alert('Update Failed', 'Could not update address.');
     } finally {
       setSaving(false);
     }
@@ -60,7 +54,6 @@ export default function ShopAddressScreen() {
 
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
-      {/* Toast */}
       {toastMsg && (
         <View style={styles.floatingToast}>
           <MaterialIcons name="check-circle" size={18} color="#22c55e" />
@@ -68,7 +61,6 @@ export default function ShopAddressScreen() {
         </View>
       )}
 
-      {/* Header */}
       <View style={styles.header}>
         <TouchableOpacity onPress={() => router.back()} style={styles.backBtn} activeOpacity={0.7}>
           <MaterialIcons name="arrow-back" size={22} color="#0f172a" />
@@ -94,7 +86,6 @@ export default function ShopAddressScreen() {
           style={styles.contentWrapper}
         >
           <View style={styles.body}>
-            {/* Banner */}
             <View style={styles.banner}>
               <View style={styles.iconCircle}>
                 <MaterialIcons name="location-on" size={26} color="#e11d48" />
@@ -107,7 +98,6 @@ export default function ShopAddressScreen() {
               </View>
             </View>
 
-            {/* Address Input */}
             <Text style={styles.sectionHeading}>Enter Store Address</Text>
             <View style={styles.card}>
               <View style={styles.fieldLabelRow}>
@@ -126,7 +116,6 @@ export default function ShopAddressScreen() {
               />
             </View>
 
-            {/* Live Thermal Receipt Header Preview */}
             <Text style={styles.sectionHeading}>Receipt Preview</Text>
             <View style={styles.receiptPreviewCard}>
               <Text style={styles.receiptStoreName}>{shopName.toUpperCase()}</Text>
@@ -140,7 +129,6 @@ export default function ShopAddressScreen() {
             </View>
           </View>
 
-          {/* Bottom Fixed Save Button */}
           <View style={[styles.bottomBar, { paddingBottom: Math.max(insets.bottom, 16) }]}>
             <TouchableOpacity
               style={[styles.saveButton, saving && { opacity: 0.75 }]}

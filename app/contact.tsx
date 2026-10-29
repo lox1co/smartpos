@@ -3,11 +3,11 @@ import { StyleSheet, View, Text, ScrollView, TouchableOpacity, Linking } from 'r
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { MaterialIcons } from '@expo/vector-icons';
-import { store } from '@/constants/store';
+import { useSessionStore } from '@/stores/session-store';
 
 export default function ContactScreen() {
   const router = useRouter();
-  const storeId = store.currentUser?.storeId || '—';
+  const storeId = useSessionStore((state) => state.currentUser?.storeId) || '—';
 
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
@@ -20,7 +20,6 @@ export default function ContactScreen() {
       </View>
 
       <ScrollView contentContainerStyle={styles.scroll} showsVerticalScrollIndicator={false}>
-        {/* Banner */}
         <View style={styles.heroBanner}>
           <View style={styles.heroIconCircle}>
             <MaterialIcons name="headset-mic" size={32} color="#ea580c" />
@@ -31,7 +30,6 @@ export default function ContactScreen() {
           </View>
         </View>
 
-        {/* Contact Channels */}
         <Text style={styles.sectionTitle}>Reach Us</Text>
 
         <TouchableOpacity
@@ -52,37 +50,28 @@ export default function ContactScreen() {
 
         <TouchableOpacity
           style={styles.contactCard}
-          onPress={() => Linking.openURL('https://wa.me/?text=SmartPOS%20Support%20Request').catch(() => {})}
+          onPress={() => Linking.openURL('tel:+15550192834')}
           activeOpacity={0.8}
         >
           <View style={[styles.contactIconCircle, { backgroundColor: '#dcfce7' }]}>
-            <MaterialIcons name="chat" size={24} color="#16a34a" />
+            <MaterialIcons name="phone" size={24} color="#16a34a" />
           </View>
           <View style={styles.contactCardText}>
-            <Text style={styles.contactCardTitle}>WhatsApp Chat</Text>
-            <Text style={styles.contactCardSub}>Quick responses via chat</Text>
-            <Text style={styles.contactCardHint}>Tap to open WhatsApp</Text>
+            <Text style={styles.contactCardTitle}>Phone Support</Text>
+            <Text style={styles.contactCardSub}>+1 (555) 019-2834</Text>
+            <Text style={styles.contactCardHint}>Mon - Sat, 9:00 AM - 7:00 PM</Text>
           </View>
           <MaterialIcons name="open-in-new" size={18} color="#94a3b8" />
         </TouchableOpacity>
 
-        {/* Info Cards */}
-        <Text style={styles.sectionTitle}>Support Info</Text>
+        <Text style={styles.sectionTitle}>Before you contact</Text>
 
         <View style={styles.infoBox}>
-          <MaterialIcons name="schedule" size={18} color="#004ac6" />
+          <MaterialIcons name="info" size={20} color="#64748b" style={{ marginTop: 1 }} />
           <View style={styles.infoBoxText}>
-            <Text style={styles.infoBoxTitle}>Support Hours</Text>
-            <Text style={styles.infoBoxBody}>Monday – Saturday, 9 AM – 6 PM IST</Text>
-          </View>
-        </View>
-
-        <View style={styles.infoBox}>
-          <MaterialIcons name="info-outline" size={18} color="#004ac6" />
-          <View style={styles.infoBoxText}>
-            <Text style={styles.infoBoxTitle}>Before Contacting Us</Text>
+            <Text style={styles.infoBoxTitle}>Have your Store ID ready</Text>
             <Text style={styles.infoBoxBody}>
-              Please include your Store ID ({storeId}), a clear description of the issue, and screenshots if available.
+              Your Store ID is <Text style={{ fontWeight: '700', color: '#0f172a' }}>{storeId}</Text>. Providing it helps us look up your account instantly.
             </Text>
           </View>
         </View>
@@ -92,9 +81,9 @@ export default function ContactScreen() {
           onPress={() => router.push('/faq')}
           activeOpacity={0.8}
         >
-          <MaterialIcons name="help-outline" size={18} color="#7c3aed" />
-          <Text style={styles.faqLinkText}>Check our FAQ first — your answer might be there</Text>
-          <MaterialIcons name="arrow-forward" size={16} color="#7c3aed" />
+          <MaterialIcons name="help" size={20} color="#7c3aed" />
+          <Text style={styles.faqLinkText}>Check Frequently Asked Questions</Text>
+          <MaterialIcons name="chevron-right" size={20} color="#7c3aed" />
         </TouchableOpacity>
       </ScrollView>
     </SafeAreaView>

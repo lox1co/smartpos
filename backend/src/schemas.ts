@@ -2,6 +2,8 @@ import { z } from "zod";
 
 const optionalString = z.string().trim().nullable().optional();
 const decimal = z.coerce.number().finite();
+export const currencyCodeSchema = z.string().trim().toUpperCase().regex(/^[A-Z]{3}$/);
+export const currencySymbolSchema = z.string().trim().min(1).max(8);
 const newPassword = z
   .string()
   .min(6)
@@ -43,6 +45,8 @@ export const storeUpdateSchema = z.object({
   address: optionalString,
   tax_enabled: z.boolean().optional(),
   tax_rate: decimal.min(0).max(100).optional(),
+  currency_code: currencyCodeSchema.optional(),
+  currency_symbol: currencySymbolSchema.optional(),
 });
 
 export const userUpdateSchema = z.object({

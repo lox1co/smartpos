@@ -1,0 +1,36 @@
+export const common = {
+  actions: {
+    cancel: 'Cancel',
+    save: 'Save',
+    delete: 'Delete',
+    confirm: 'Confirm',
+    edit: 'Edit',
+    copy: 'Copy',
+    copied: 'Copied',
+    signIn: 'Sign In',
+    signingIn: 'Signing in...',
+    signOut: 'Sign Out',
+    createAccount: 'Create Account',
+    close: 'Close',
+    retry: 'Retry',
+    ok: 'OK',
+  },
+  status: {
+    loading: 'Loading...',
+    success: 'Success',
+    error: 'Error',
+    synced: 'Synced',
+    pending: 'Pending',
+  },
+  validation: {
+    required: 'Please fill in all fields.',
+    invalidEmail: 'Please enter a valid email address or username.',
+    passwordTooShort: 'Password must be at least 6 characters.',
+    genericError: 'Something went wrong. Please try again.',
+  },
+  navigation: {
+    back: 'Back',
+    home: 'Home',
+    settings: 'Settings',
+  },
+} as const;
