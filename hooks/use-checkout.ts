@@ -5,6 +5,7 @@ import { useCartStore } from '@/stores/cart-store';
 import { useSessionStore } from '@/stores/session-store';
 import { useSyncStore } from '@/stores/sync-store';
 import { TransactionSelect } from '@/db/schema/transactions';
+import { generateUuid } from '@/utils/uuid';
 
 export interface CheckoutOptions {
   paymentMethod: 'CASH' | 'UPI' | 'CARD' | 'CREDIT';
@@ -15,6 +16,18 @@ export interface CheckoutOptions {
   amountPaidCents?: number;
 }
 
+export interface CheckoutItemSummary {
+  name: string;
+  quantity: number;
+  priceCents: number;
+  totalCents: number;
+}
+
+export interface CompletedCheckoutResult {
+  transaction: TransactionSelect;
+  items: CheckoutItemSummary[];
+}
+
 export const useCheckout = () => {
   const [isProcessing, setIsProcessing] = useState(false);
   const [lastCompletedTx, setLastCompletedTx] = useState<TransactionSelect | null>(null);
@@ -23,7 +36,7 @@ export const useCheckout = () => {
   const clearCart = useCartStore((state) => state.clearCart);
   const setPendingOutboxCount = useSyncStore((state) => state.setPendingOutboxCount);
 
-  const processCheckout = async (options: CheckoutOptions): Promise<TransactionSelect> => {
+  const processCheckout = async (options: CheckoutOptions): Promise<CompletedCheckoutResult> => {
     setIsProcessing(true);
     try {
       const storeId = currentUser?.storeId ?? 'DEMO-1001';
@@ -31,9 +44,16 @@ export const useCheckout = () => {
       const { items, getTotals } = useCartStore.getState();
       const totals = getTotals(currentUser?.taxEnabled ?? true, currentUser?.taxRate ?? 8);
 
-      const txId = `tx-${Date.now()}-${Math.floor(1000 + Math.random() * 9000)}`;
+      const txId = generateUuid();
       const dateStr = new Date().toISOString().slice(0, 10).replace(/-/g, '');
-      const invoiceNumber = `INV-${dateStr}-${Math.floor(1000 + Math.random() * 9000)}`;
+      const invoiceNumber = `INV-${dateStr}-${generateUuid().slice(0, 8).toUpperCase()}`;
+
+      const itemsSummary: CheckoutItemSummary[] = items.map((item) => ({
+        name: item.product.name,
+        quantity: item.quantity,
+        priceCents: item.product.priceCents,
+        totalCents: Math.round(item.product.priceCents * item.quantity),
+      }));
 
       const input: CheckoutInput = {
         transaction: {
@@ -59,7 +79,7 @@ export const useCheckout = () => {
           isPendingSync: true,
         },
         items: items.map((item) => ({
-          id: `item-${Date.now()}-${Math.floor(1000 + Math.random() * 9000)}`,
+          id: generateUuid(),
           transactionId: txId,
           productId: item.product.id,
           productName: item.product.name,
@@ -76,7 +96,10 @@ export const useCheckout = () => {
       const pendingCount = await countPendingOutbox(storeId);
       setPendingOutboxCount(pendingCount);
 
-      return result;
+      return {
+        transaction: result,
+        items: itemsSummary,
+      };
     } finally {
       setIsProcessing(false);
     }

@@ -1,4 +1,4 @@
-CREATE TABLE `products` (
+CREATE TABLE IF NOT EXISTS `products` (
 	`id` text PRIMARY KEY NOT NULL,
 	`store_id` text NOT NULL,
 	`sku` text NOT NULL,
@@ -16,10 +16,10 @@ CREATE TABLE `products` (
 	`updated_at` integer NOT NULL
 );
 --> statement-breakpoint
-CREATE INDEX `idx_products_store_sku` ON `products` (`store_id`,`sku`);--> statement-breakpoint
-CREATE INDEX `idx_products_store_category` ON `products` (`store_id`,`category`);--> statement-breakpoint
-CREATE INDEX `idx_products_name` ON `products` (`name`);--> statement-breakpoint
-CREATE TABLE `transactions` (
+CREATE INDEX IF NOT EXISTS `idx_products_store_sku` ON `products` (`store_id`,`sku`);--> statement-breakpoint
+CREATE INDEX IF NOT EXISTS `idx_products_store_category` ON `products` (`store_id`,`category`);--> statement-breakpoint
+CREATE INDEX IF NOT EXISTS `idx_products_name` ON `products` (`name`);--> statement-breakpoint
+CREATE TABLE IF NOT EXISTS `transactions` (
 	`id` text PRIMARY KEY NOT NULL,
 	`store_id` text NOT NULL,
 	`invoice_number` text NOT NULL,
@@ -39,9 +39,9 @@ CREATE TABLE `transactions` (
 	`is_pending_sync` integer DEFAULT false NOT NULL
 );
 --> statement-breakpoint
-CREATE INDEX `idx_tx_store_invoice` ON `transactions` (`store_id`,`invoice_number`);--> statement-breakpoint
-CREATE INDEX `idx_tx_store_created_at` ON `transactions` (`store_id`,`created_at`);--> statement-breakpoint
-CREATE TABLE `transaction_items` (
+CREATE INDEX IF NOT EXISTS `idx_tx_store_invoice` ON `transactions` (`store_id`,`invoice_number`);--> statement-breakpoint
+CREATE INDEX IF NOT EXISTS `idx_tx_store_created_at` ON `transactions` (`store_id`,`created_at`);--> statement-breakpoint
+CREATE TABLE IF NOT EXISTS `transaction_items` (
 	`id` text PRIMARY KEY NOT NULL,
 	`transaction_id` text NOT NULL,
 	`product_id` text,
@@ -51,8 +51,8 @@ CREATE TABLE `transaction_items` (
 	`total_cents` integer NOT NULL
 );
 --> statement-breakpoint
-CREATE INDEX `idx_tx_items_tx_id` ON `transaction_items` (`transaction_id`);--> statement-breakpoint
-CREATE TABLE `customers` (
+CREATE INDEX IF NOT EXISTS `idx_tx_items_tx_id` ON `transaction_items` (`transaction_id`);--> statement-breakpoint
+CREATE TABLE IF NOT EXISTS `customers` (
 	`id` text PRIMARY KEY NOT NULL,
 	`store_id` text NOT NULL,
 	`name` text NOT NULL,
@@ -61,8 +61,8 @@ CREATE TABLE `customers` (
 	`created_at` integer NOT NULL
 );
 --> statement-breakpoint
-CREATE INDEX `idx_customers_store_name` ON `customers` (`store_id`,`name`);--> statement-breakpoint
-CREATE TABLE `credit_entries` (
+CREATE INDEX IF NOT EXISTS `idx_customers_store_name` ON `customers` (`store_id`,`name`);--> statement-breakpoint
+CREATE TABLE IF NOT EXISTS `credit_entries` (
 	`id` text PRIMARY KEY NOT NULL,
 	`store_id` text NOT NULL,
 	`customer_id` text NOT NULL,
@@ -73,8 +73,8 @@ CREATE TABLE `credit_entries` (
 	`created_at` integer NOT NULL
 );
 --> statement-breakpoint
-CREATE INDEX `idx_credit_customer_created` ON `credit_entries` (`customer_id`,`created_at`);--> statement-breakpoint
-CREATE TABLE `sync_outbox` (
+CREATE INDEX IF NOT EXISTS `idx_credit_customer_created` ON `credit_entries` (`customer_id`,`created_at`);--> statement-breakpoint
+CREATE TABLE IF NOT EXISTS `sync_outbox` (
 	`id` text PRIMARY KEY NOT NULL,
 	`store_id` text NOT NULL,
 	`entity_type` text NOT NULL,
@@ -87,4 +87,4 @@ CREATE TABLE `sync_outbox` (
 	`synced_at` integer
 );
 --> statement-breakpoint
-CREATE INDEX `idx_sync_outbox_status` ON `sync_outbox` (`store_id`,`status`);
+CREATE INDEX IF NOT EXISTS `idx_sync_outbox_status` ON `sync_outbox` (`store_id`,`status`);

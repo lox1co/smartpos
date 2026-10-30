@@ -9,13 +9,8 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { MaterialIcons } from '@expo/vector-icons';
-import { useSessionStore } from '@/stores/session-store';
-import {
-  getProductById,
-  upsertProducts,
-  deleteProductById,
-} from '@/db/repositories/product-repository';
-import { toCents, fromCents } from '@/utils/money';
+import { useProductMutation } from '@/hooks/use-product-mutation';
+import { fromCents } from '@/utils/money';
 import {
   ProductFormInputs,
   styles,
@@ -24,7 +19,7 @@ import {
 export default function AddProductScreen() {
   const router = useRouter();
   const { id, scannedSku } = useLocalSearchParams<{ id?: string; scannedSku?: string }>();
-  const storeId = useSessionStore((state) => state.currentUser?.storeId ?? 'DEMO-1001');
+  const { isSubmitting, fetchProduct, saveProduct, deleteProduct } = useProductMutation();
 
   const [name, setName] = useState('');
   const [sku, setSku] = useState(scannedSku || '');
@@ -34,11 +29,10 @@ export default function AddProductScreen() {
   const [category, setCategory] = useState('Grocery');
   const [unit, setUnit] = useState('pcs');
   const [taxRate, setTaxRate] = useState('8');
-  const [isSubmitting, setIsSubmitting] = useState(false);
 
   useEffect(() => {
     if (id) {
-      void getProductById(id).then((p) => {
+      void fetchProduct(id).then((p) => {
         if (p) {
           setName(p.name);
           setSku(p.sku);
@@ -51,7 +45,7 @@ export default function AddProductScreen() {
         }
       });
     }
-  }, [id]);
+  }, [id, fetchProduct]);
 
   const handleSave = async () => {
     if (!name.trim() || !sku.trim() || !price.trim()) {
@@ -69,36 +63,23 @@ export default function AddProductScreen() {
       return;
     }
 
-    setIsSubmitting(true);
     try {
-      const now = Date.now();
-      const productId = id || `prod-${now}-${Math.floor(1000 + Math.random() * 9000)}`;
-
-      await upsertProducts([
-        {
-          id: productId,
-          storeId,
-          sku: sku.trim().toUpperCase(),
-          name: name.trim(),
-          priceCents: toCents(numericPrice),
-          costPriceCents: toCents(numericCostPrice),
-          stock: numericStock,
-          lowStockAlert: 5,
-          category,
-          unit: unit.trim() || 'pcs',
-          taxRate: numericTaxRate,
-          isActive: true,
-          createdAt: now,
-          updatedAt: now,
-        },
-      ]);
+      await saveProduct({
+        id,
+        name: name.trim(),
+        sku: sku.trim().toUpperCase(),
+        price: numericPrice,
+        costPrice: numericCostPrice,
+        stock: numericStock,
+        category,
+        unit: unit.trim() || 'pcs',
+        taxRate: numericTaxRate,
+      });
 
       Alert.alert('Success', `Product ${name} saved successfully.`);
       router.back();
     } catch {
       Alert.alert('Error', 'Failed to save product in local database.');
-    } finally {
-      setIsSubmitting(false);
     }
   };
 
@@ -110,7 +91,7 @@ export default function AddProductScreen() {
         text: 'Delete',
         style: 'destructive',
         onPress: async () => {
-          await deleteProductById(id);
+          await deleteProduct(id);
           router.back();
         },
       },

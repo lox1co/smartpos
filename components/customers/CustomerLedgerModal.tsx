@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import {
   Modal,
   View,
@@ -12,8 +12,7 @@ import {
 } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
 import { CustomerSelect } from '@/db/schema/customers';
-import { CreditEntrySelect } from '@/db/schema/credit-entries';
-import { getCustomerCreditEntries } from '@/db/repositories/customer-repository';
+import { useCustomerCreditEntries } from '@/hooks/use-customers';
 import { formatCents, toCents } from '@/utils/money';
 
 interface CustomerLedgerModalProps {
@@ -31,21 +30,11 @@ export const CustomerLedgerModal = ({
   onClose,
   onRecordPayment,
 }: CustomerLedgerModalProps) => {
-  const [entries, setEntries] = useState<CreditEntrySelect[]>([]);
-  const [loading, setLoading] = useState(false);
+  const { entries, loading } = useCustomerCreditEntries(customer?.id, visible);
   const [payAmount, setPayAmount] = useState('');
   const [payNote, setPayNote] = useState('');
   const [recording, setRecording] = useState(false);
   const [showPayInput, setShowPayInput] = useState(false);
-
-  useEffect(() => {
-    if (visible && customer) {
-      setLoading(true);
-      void getCustomerCreditEntries(customer.id)
-        .then((data) => setEntries(data))
-        .finally(() => setLoading(false));
-    }
-  }, [visible, customer]);
 
   if (!visible || !customer) return null;
 

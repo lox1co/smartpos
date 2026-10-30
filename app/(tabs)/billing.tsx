@@ -13,13 +13,17 @@ import { useRouter } from 'expo-router';
 import { MaterialIcons } from '@expo/vector-icons';
 import { useCart } from '@/hooks/use-cart';
 import { useProductCatalog } from '@/hooks/use-product-catalog';
-import { useCheckout } from '@/hooks/use-checkout';
+import { useCheckout, CompletedCheckoutResult } from '@/hooks/use-checkout';
+import { useSessionStore } from '@/stores/session-store';
 import { ProductSelect } from '@/db/schema/products';
 import {
   ProductCard,
   CartBottomSheet,
   PaymentModal,
+  PaymentMethod,
+  PaymentConfirmOptions,
   WeightPickerModal,
+  PostCheckoutModal,
   styles,
 } from '@/components/billing';
 import { PRODUCT_CATEGORIES } from '@/constants/config';
@@ -45,26 +49,25 @@ export default function BillingScreen() {
     setIsCartOpen,
   } = useCart();
 
-  const { products, isLoading, refreshCatalog } = useProductCatalog(
-    selectedCategory === 'All Items' ? undefined : selectedCategory,
-    searchQuery
-  );
-
+  const { products, refreshCatalog } = useProductCatalog(selectedCategory, searchQuery);
   const { isProcessing, processCheckout } = useCheckout();
+
+  const shopName = useSessionStore((state) => state.currentUser?.shopName ?? 'SmartPOS Store');
+  const storeAddress = useSessionStore((state) => state.currentUser?.businessAddress);
+  const storePhone = useSessionStore((state) => state.currentUser?.storePhone || state.currentUser?.phone);
+  const gstNumber = useSessionStore((state) => state.currentUser?.gstNumber);
 
   const [paymentModalOpen, setPaymentModalOpen] = useState(false);
   const [weightModalProduct, setWeightModalProduct] = useState<ProductSelect | null>(null);
+  const [completedSale, setCompletedSale] = useState<CompletedCheckoutResult | null>(null);
 
   const handleProductPress = useCallback(
     (product: ProductSelect) => {
-      if (product.stock <= 0) {
-        Alert.alert('Out of Stock', `${product.name} is currently out of stock.`);
-        return;
-      }
-      if (['kg', 'g', 'l', 'ml'].includes(product.unit)) {
+      const isWeight = product.unit === 'kg' || product.unit === 'g';
+      if (isWeight) {
         setWeightModalProduct(product);
       } else {
-        addItem(product, 1);
+        addItem(product);
       }
     },
     [addItem]
@@ -81,20 +84,19 @@ export default function BillingScreen() {
   );
 
   const handleConfirmPayment = async (
-    paymentMethod: 'CASH' | 'UPI' | 'CARD' | 'CREDIT',
-    amountPaidCents?: number
+    paymentMethod: PaymentMethod,
+    options?: PaymentConfirmOptions
   ) => {
     try {
-      const tx = await processCheckout({
+      const saleResult = await processCheckout({
         paymentMethod,
-        amountPaidCents,
+        customerName: options?.customerName,
+        customerPhone: options?.customerPhone,
+        amountPaidCents: options?.amountPaidCents,
       });
       setPaymentModalOpen(false);
       setIsCartOpen(false);
-      Alert.alert(
-        'Sale Complete',
-        `Invoice ${tx.invoiceNumber} recorded successfully for ${formatCents(tx.totalCents, currencySymbol)}.`
-      );
+      setCompletedSale(saleResult);
       refreshCatalog();
     } catch {
       Alert.alert('Checkout Error', 'Failed to complete transaction.');
@@ -159,7 +161,9 @@ export default function BillingScreen() {
                 style={[styles.categoryChip, active && styles.categoryChipActive]}
                 onPress={() => setSelectedCategory(cat)}
               >
-                <Text style={[styles.categoryText, active && styles.categoryTextActive]}>{cat}</Text>
+                <Text style={[styles.categoryText, active && styles.categoryTextActive]}>
+                  {cat}
+                </Text>
               </TouchableOpacity>
             );
           })}
@@ -169,18 +173,27 @@ export default function BillingScreen() {
       <FlatList
         data={products}
         keyExtractor={(item) => item.id}
-        numColumns={2}
         renderItem={renderProduct}
+        numColumns={2}
         contentContainerStyle={styles.gridContent}
+        showsVerticalScrollIndicator={false}
         getItemLayout={getItemLayout}
-        refreshing={isLoading}
-        onRefresh={refreshCatalog}
+        initialNumToRender={8}
+        maxToRenderPerBatch={8}
+        windowSize={5}
+        removeClippedSubviews
+        ListEmptyComponent={
+          <View style={{ alignItems: 'center', marginTop: 60 }}>
+            <MaterialIcons name="inventory-2" size={48} color="#c3c6d7" />
+            <Text style={{ color: '#737686', marginTop: 12 }}>No products found</Text>
+          </View>
+        }
       />
 
       {items.length > 0 && (
         <TouchableOpacity
           style={styles.floatingCartBar}
-          activeOpacity={0.85}
+          activeOpacity={0.88}
           onPress={() => setIsCartOpen(true)}
         >
           <View style={styles.floatingCartLeft}>
@@ -221,6 +234,17 @@ export default function BillingScreen() {
         currencySymbol={currencySymbol}
         onClose={() => setWeightModalProduct(null)}
         onConfirm={handleConfirmWeight}
+      />
+
+      <PostCheckoutModal
+        visible={Boolean(completedSale)}
+        result={completedSale}
+        currencySymbol={currencySymbol}
+        shopName={shopName}
+        storeAddress={storeAddress}
+        storePhone={storePhone}
+        gstNumber={gstNumber}
+        onNewSale={() => setCompletedSale(null)}
       />
     </SafeAreaView>
   );

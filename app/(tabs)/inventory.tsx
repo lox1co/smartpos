@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useCallback } from 'react';
+import React, { useState, useCallback } from 'react';
 import {
   View,
   Text,
@@ -9,10 +9,9 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { MaterialIcons } from '@expo/vector-icons';
-import { useProductCatalog } from '@/hooks/use-product-catalog';
+import { useInventory } from '@/hooks/use-inventory';
 import { useSessionStore } from '@/stores/session-store';
 import { ProductSelect } from '@/db/schema/products';
-import { restockProductStock } from '@/db/repositories/product-repository';
 import { formatCents } from '@/utils/money';
 import {
   InventoryCard,
@@ -29,30 +28,10 @@ export default function InventoryScreen() {
   const [searchQuery, setSearchQuery] = useState('');
   const [restockTarget, setRestockTarget] = useState<ProductSelect | null>(null);
 
-  const { products, isLoading, refreshCatalog } = useProductCatalog(undefined, searchQuery);
-
-  const filteredProducts = useMemo(() => {
-    return products.filter((item) => {
-      if (selectedFilter === 'Low Stock') {
-        return item.stock > 0 && item.stock <= item.lowStockAlert;
-      }
-      if (selectedFilter === 'Out of Stock') {
-        return item.stock <= 0;
-      }
-      return true;
-    });
-  }, [products, selectedFilter]);
-
-  const metrics = useMemo(() => {
-    let totalCents = 0;
-    for (const item of products) {
-      totalCents += Math.round(item.priceCents * item.stock);
-    }
-    return {
-      totalValueCents: totalCents,
-      distinctCount: products.length,
-    };
-  }, [products]);
+  const { products, isLoading, metrics, refreshCatalog, restock } = useInventory(
+    searchQuery,
+    selectedFilter
+  );
 
   const handleRestock = useCallback((product: ProductSelect) => {
     setRestockTarget(product);
@@ -61,12 +40,12 @@ export default function InventoryScreen() {
   const handleConfirmRestock = async (qty: number) => {
     if (!restockTarget) return;
     try {
-      await restockProductStock(restockTarget.id, qty);
+      await restock(restockTarget.id, qty);
       Alert.alert(
         'Stock Updated',
         `Added +${qty} ${restockTarget.unit} to ${restockTarget.name}.`
       );
-      refreshCatalog();
+      setRestockTarget(null);
     } catch {
       Alert.alert('Error', 'Failed to update stock in database.');
     }
@@ -134,7 +113,7 @@ export default function InventoryScreen() {
       </View>
 
       <FlatList
-        data={filteredProducts}
+        data={products}
         keyExtractor={(item) => item.id}
         renderItem={renderInventoryItem}
         contentContainerStyle={styles.listContent}

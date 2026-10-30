@@ -1,7 +1,7 @@
 import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import { UserSession, userSessionSchema } from '@/schemas/session';
+import { secureStorage } from '@/utils/secure-storage';
 
 interface SessionState {
   currentUser: UserSession | null;
@@ -12,7 +12,7 @@ interface SessionState {
   setHydrated: (hydrated: boolean) => void;
 }
 
-const STORAGE_KEY = 'smartpos_session_v2';
+const STORAGE_KEY = 'smartpos_session_secure_v1';
 
 export const useSessionStore = create<SessionState>()(
   persist(
@@ -45,7 +45,7 @@ export const useSessionStore = create<SessionState>()(
     }),
     {
       name: STORAGE_KEY,
-      storage: createJSONStorage(() => AsyncStorage),
+      storage: createJSONStorage(() => secureStorage),
       onRehydrateStorage: () => (state) => {
         state?.setHydrated(true);
       },

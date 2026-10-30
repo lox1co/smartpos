@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import {
   StyleSheet,
   View,
@@ -24,12 +24,6 @@ export default function ShopGstScreen() {
 
   const [gstNumber, setGstNumber] = useState(user?.gstNumber || '');
   const [saving, setSaving] = useState(false);
-
-  useEffect(() => {
-    if (user?.gstNumber) {
-      setGstNumber(user.gstNumber);
-    }
-  }, [user]);
 
   const handleSave = async () => {
     Keyboard.dismiss();
@@ -116,7 +110,7 @@ export default function ShopGstScreen() {
               <View style={styles.formatInfoBox}>
                 <MaterialIcons name="info-outline" size={15} color="#64748b" />
                 <Text style={styles.formatInfoText}>
-                  Format: 2-digit State + 10-digit PAN + 1 Entity + 'Z' + 1 Check
+                  Format: 2-digit State + 10-digit PAN + 1 Entity + &apos;Z&apos; + 1 Check
                 </Text>
               </View>
             </View>

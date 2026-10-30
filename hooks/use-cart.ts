@@ -25,6 +25,8 @@ export const useCart = () => {
   const currencySymbol = useSessionStore((state) => state.currentUser?.currencySymbol ?? '$');
 
   const totals = useMemo(() => {
+    void items;
+    void discountPercent;
     return getTotals(taxEnabled, taxRate);
   }, [getTotals, items, discountPercent, taxEnabled, taxRate]);
 

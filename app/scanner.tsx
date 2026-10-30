@@ -4,9 +4,8 @@ import { useRouter, useLocalSearchParams } from 'expo-router';
 import { CameraView, useCameraPermissions, BarcodeScanningResult } from 'expo-camera';
 import { MaterialIcons } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
-import { useSessionStore } from '@/stores/session-store';
 import { useCartStore } from '@/stores/cart-store';
-import { getProductBySku } from '@/db/repositories/product-repository';
+import { useBarcodeScanner } from '@/hooks/use-barcode-scanner';
 import {
   ScannerOverlay,
   ScannedNotFoundModal,
@@ -18,15 +17,15 @@ export default function ScannerScreen() {
   const router = useRouter();
   const { mode } = useLocalSearchParams<{ mode?: string }>();
   const [permission, requestPermission] = useCameraPermissions();
-  const storeId = useSessionStore((state) => state.currentUser?.storeId ?? 'DEMO-1001');
+  const { lookupProduct, addScannedProductToCart } = useBarcodeScanner();
+
   const cartItemCount = useCartStore((state) => state.items.length);
-  const addItem = useCartStore((state) => state.addItem);
 
   const [torch, setTorch] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
   const [notFoundSku, setNotFoundSku] = useState<string | null>(null);
 
-  const scanAnim = useRef(new Animated.Value(0)).current;
+  const [scanAnim] = useState(() => new Animated.Value(0));
   const lastScanRef = useRef<{ code: string; time: number }>({ code: '', time: 0 });
 
   useEffect(() => {
@@ -69,9 +68,9 @@ export default function ScannerScreen() {
       return;
     }
 
-    const product = await getProductBySku(storeId, rawData);
+    const product = await lookupProduct(rawData);
     if (product) {
-      addItem(product, 1);
+      addScannedProductToCart(product);
       setIsSuccess(true);
       setTimeout(() => setIsSuccess(false), 700);
     } else {

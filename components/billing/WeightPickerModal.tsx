@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import {
   Modal,
   View,
@@ -20,23 +20,24 @@ interface WeightPickerModalProps {
   onConfirm: (quantity: number) => void;
 }
 
-export const WeightPickerModal = ({
-  visible,
+interface WeightPickerContentProps {
+  product: ProductSelect;
+  initialQuantity: number;
+  currencySymbol: string;
+  onClose: () => void;
+  onConfirm: (quantity: number) => void;
+}
+
+const WeightPickerContent = ({
   product,
   initialQuantity,
   currencySymbol,
   onClose,
   onConfirm,
-}: WeightPickerModalProps) => {
-  const [val, setVal] = useState(initialQuantity > 0 ? String(initialQuantity) : '0.5');
-
-  useEffect(() => {
-    if (visible && product) {
-      setVal(initialQuantity > 0 ? String(initialQuantity) : product.unit === 'g' ? '250' : '0.5');
-    }
-  }, [visible, product, initialQuantity]);
-
-  if (!visible || !product) return null;
+}: WeightPickerContentProps) => {
+  const [val, setVal] = useState(
+    initialQuantity > 0 ? String(initialQuantity) : product.unit === 'g' ? '250' : '0.5'
+  );
 
   const parsedQty = parseFloat(val) || 0;
   const estimatedCents = Math.round(product.priceCents * parsedQty);
@@ -48,7 +49,7 @@ export const WeightPickerModal = ({
   };
 
   return (
-    <Modal visible={visible} transparent animationType="fade" onRequestClose={onClose}>
+    <Modal visible transparent animationType="fade" onRequestClose={onClose}>
       <TouchableWithoutFeedback onPress={onClose}>
         <View style={styles.backdrop}>
           <TouchableWithoutFeedback>
@@ -86,6 +87,28 @@ export const WeightPickerModal = ({
         </View>
       </TouchableWithoutFeedback>
     </Modal>
+  );
+};
+
+export const WeightPickerModal = ({
+  visible,
+  product,
+  initialQuantity,
+  currencySymbol,
+  onClose,
+  onConfirm,
+}: WeightPickerModalProps) => {
+  if (!visible || !product) return null;
+
+  return (
+    <WeightPickerContent
+      key={`${product.id}-${initialQuantity}`}
+      product={product}
+      initialQuantity={initialQuantity}
+      currencySymbol={currencySymbol}
+      onClose={onClose}
+      onConfirm={onConfirm}
+    />
   );
 };
 

@@ -50,8 +50,15 @@ productsRouter.get("/products", async (request, response) => {
 productsRouter.post("/products", requireManager, async (request, response) => {
   const input = parse(productSchema, request.body);
   const sku = input.sku.toUpperCase();
-  const existing = await prisma.product.findFirst({ where: { storeId: request.auth!.storeId, sku, isActive: true } });
-  if (existing) throw new HttpError(400, "SKU code already exists in your store catalog");
+  const existing = await prisma.product.findFirst({ where: { storeId: request.auth!.storeId, sku } });
+  if (existing) {
+    const updated = await prisma.product.update({
+      where: { id: existing.id },
+      data: { ...productData(input), isActive: true },
+    });
+    response.status(200).json(productResponse(updated));
+    return;
+  }
   const product = await prisma.product.create({ data: { ...productData(input), storeId: request.auth!.storeId } });
   response.status(201).json(productResponse(product));
 });
@@ -130,9 +137,12 @@ productsRouter.delete("/products/clear-all", requireManager, async (request, res
 });
 
 productsRouter.delete("/products/:product_id", requireManager, async (request, response) => {
-  const productId = Number(request.params["product_id"]);
+  const param = String(request.params["product_id"] || "");
+  const productId = Number(param);
   const product = await prisma.product.findFirst({
-    where: { id: productId, storeId: request.auth!.storeId, isActive: true },
+    where: !Number.isNaN(productId)
+      ? { id: productId, storeId: request.auth!.storeId, isActive: true }
+      : { sku: param.toUpperCase(), storeId: request.auth!.storeId, isActive: true },
   });
   if (!product) throw new HttpError(404, "Product not found");
   await prisma.product.update({

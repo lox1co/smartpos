@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import {
   Modal,
   View,
@@ -12,7 +12,7 @@ import {
 import { MaterialIcons } from '@expo/vector-icons';
 import { TransactionSelect } from '@/db/schema/transactions';
 import { TransactionItemSelect } from '@/db/schema/transaction-items';
-import { getTransactionItems } from '@/db/repositories/transaction-repository';
+import { useTransactionItems } from '@/hooks/use-transactions';
 import { formatCents } from '@/utils/money';
 
 interface TransactionDetailModalProps {
@@ -30,17 +30,7 @@ export const TransactionDetailModal = ({
   onClose,
   onPrint,
 }: TransactionDetailModalProps) => {
-  const [items, setItems] = useState<TransactionItemSelect[]>([]);
-  const [loading, setLoading] = useState(false);
-
-  useEffect(() => {
-    if (visible && transaction) {
-      setLoading(true);
-      void getTransactionItems(transaction.id)
-        .then((res) => setItems(res))
-        .finally(() => setLoading(false));
-    }
-  }, [visible, transaction]);
+  const { items, loading } = useTransactionItems(transaction?.id, visible);
 
   if (!visible || !transaction) return null;
 

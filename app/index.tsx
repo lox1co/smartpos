@@ -1,10 +1,9 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   StyleSheet,
   View,
   Text,
   Animated,
-  Dimensions,
   Image,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -12,17 +11,15 @@ import { StatusBar } from 'expo-status-bar';
 import { useRouter } from 'expo-router';
 import { useSessionStore } from '@/stores/session-store';
 
-const { width: SCREEN_WIDTH } = Dimensions.get('window');
-
 export default function SplashScreen() {
   const router = useRouter();
 
-  const fadeAnim = useRef(new Animated.Value(0)).current;
-  const slideAnim = useRef(new Animated.Value(20)).current;
-  const pulseAnim = useRef(new Animated.Value(1)).current;
-  const dot1Anim = useRef(new Animated.Value(1)).current;
-  const dot2Anim = useRef(new Animated.Value(1)).current;
-  const dot3Anim = useRef(new Animated.Value(1)).current;
+  const [fadeAnim] = useState(() => new Animated.Value(0));
+  const [slideAnim] = useState(() => new Animated.Value(20));
+  const [pulseAnim] = useState(() => new Animated.Value(1));
+  const [dot1Anim] = useState(() => new Animated.Value(1));
+  const [dot2Anim] = useState(() => new Animated.Value(1));
+  const [dot3Anim] = useState(() => new Animated.Value(1));
 
   useEffect(() => {
     Animated.parallel([
@@ -79,12 +76,13 @@ export default function SplashScreen() {
 
     let cancelled = false;
     const minDelay = new Promise<void>((resolve) => setTimeout(resolve, 2000));
-    (async () => {
+    const redirect = async () => {
       await minDelay;
       if (cancelled) return;
       const token = useSessionStore.getState().currentUser?.token;
       router.replace(token ? '/(tabs)/dashboard' : '/login');
-    })();
+    };
+    void redirect();
 
     return () => {
       cancelled = true;

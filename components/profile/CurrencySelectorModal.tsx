@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import {
   View,
   Text,
@@ -56,13 +56,6 @@ export const CurrencySelectorModal = ({
     );
     return found || PRESET_CURRENCIES[0];
   });
-
-  useEffect(() => {
-    const found = PRESET_CURRENCIES.find(
-      (c) => c.code === initialCode && c.symbol === initialSymbol
-    );
-    setSelectedPreset(found || PRESET_CURRENCIES[0]);
-  }, [initialCode, initialSymbol, visible]);
 
   const handleSave = () => {
     onSave(selectedPreset.code, selectedPreset.symbol);

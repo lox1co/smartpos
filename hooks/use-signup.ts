@@ -1,4 +1,4 @@
-import { useState, useRef } from 'react';
+import { useState } from 'react';
 import { Animated, Easing } from 'react-native';
 import { useRouter } from 'expo-router';
 import { API_BASE_URL } from '@/constants/config';
@@ -53,8 +53,8 @@ export const useSignup = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
 
-  const contentFadeAnim = useRef(new Animated.Value(1)).current;
-  const contentTranslateX = useRef(new Animated.Value(0)).current;
+  const [contentFadeAnim] = useState(() => new Animated.Value(1));
+  const [contentTranslateX] = useState(() => new Animated.Value(0));
 
   const handleVerifyJoinCode = async (code: string) => {
     const clean = code.trim().toUpperCase();

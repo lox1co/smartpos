@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import {
   View,
   Text,
@@ -46,13 +46,6 @@ export default function StoreInfoScreen() {
   const [saving, setSaving] = useState(false);
   const [copiedStoreId, setCopiedStoreId] = useState(false);
 
-  useEffect(() => {
-    if (user) {
-      setShopName(user.shopName || '');
-      setUserName(user.userName || '');
-      setSelectedAvatar(user.image || null);
-    }
-  }, [user]);
 
   const handleCopyStoreId = () => {
     if (!storeId) return;

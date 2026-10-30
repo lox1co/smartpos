@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo, useCallback } from 'react';
+import React, { useState, useCallback } from 'react';
 import {
   View,
   Text,
@@ -10,12 +10,7 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { MaterialIcons } from '@expo/vector-icons';
-import { useSessionStore } from '@/stores/session-store';
-import {
-  listCustomers,
-  upsertCustomer,
-  recordCustomerCreditPayment,
-} from '@/db/repositories/customer-repository';
+import { useCustomers } from '@/hooks/use-customers';
 import { CustomerSelect } from '@/db/schema/customers';
 import { formatCents } from '@/utils/money';
 import {
@@ -27,76 +22,39 @@ import {
 
 export default function CustomersScreen() {
   const router = useRouter();
-  const storeId = useSessionStore((state) => state.currentUser?.storeId ?? 'DEMO-1001');
-  const currencySymbol = useSessionStore((state) => state.currentUser?.currencySymbol ?? '$');
+  const {
+    filteredCustomers,
+    isLoading,
+    searchQuery,
+    totalOutstandingCents,
+    currencySymbol,
+    setSearchQuery,
+    loadData,
+    addCustomer,
+    recordPayment,
+  } = useCustomers();
 
-  const [customers, setCustomers] = useState<CustomerSelect[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [searchQuery, setSearchQuery] = useState('');
   const [selectedCustomer, setSelectedCustomer] = useState<CustomerSelect | null>(null);
   const [addModalOpen, setAddModalOpen] = useState(false);
 
-  const loadData = useCallback(async () => {
-    setIsLoading(true);
-    try {
-      const data = await listCustomers(storeId);
-      setCustomers(data);
-    } finally {
-      setIsLoading(false);
-    }
-  }, [storeId]);
-
-  useEffect(() => {
-    loadData();
-  }, [loadData]);
-
-  const totalOutstandingCents = useMemo(() => {
-    return customers.reduce(
-      (sum, c) => sum + (c.creditBalanceCents > 0 ? c.creditBalanceCents : 0),
-      0
-    );
-  }, [customers]);
-
-  const filteredCustomers = useMemo(() => {
-    const q = searchQuery.trim().toLowerCase();
-    if (!q) return customers;
-    return customers.filter(
-      (c) => c.name.toLowerCase().includes(q) || (c.phone || '').includes(q)
-    );
-  }, [customers, searchQuery]);
-
   const handleAddCustomer = async (name: string, phone?: string) => {
-    const newId = `cust-${Date.now()}-${Math.floor(1000 + Math.random() * 9000)}`;
-    await upsertCustomer({
-      id: newId,
-      storeId,
-      name,
-      phone: phone || null,
-      creditBalanceCents: 0,
-      createdAt: Date.now(),
-    });
-    Alert.alert('Customer Added', `${name} has been added to customers.`);
-    loadData();
+    try {
+      await addCustomer(name, phone);
+      Alert.alert('Customer Added', `${name} has been added to customers.`);
+      setAddModalOpen(false);
+    } catch {
+      Alert.alert('Error', 'Failed to add customer.');
+    }
   };
 
   const handleRecordPayment = async (amountCents: number, note?: string) => {
     if (!selectedCustomer) return;
     try {
-      await recordCustomerCreditPayment({
-        id: `pay-${Date.now()}-${Math.floor(1000 + Math.random() * 9000)}`,
-        storeId,
-        customerId: selectedCustomer.id,
-        entryType: 'CREDIT',
-        amountCents,
-        note: note || 'Repayment',
-        invoiceNumber: null,
-        createdAt: Date.now(),
-      });
+      await recordPayment(selectedCustomer.id, amountCents, note);
       Alert.alert(
         'Payment Recorded',
         `Recorded ${formatCents(amountCents, currencySymbol)} repayment from ${selectedCustomer.name}.`
       );
-      loadData();
       setSelectedCustomer(null);
     } catch {
       Alert.alert('Error', 'Failed to record customer repayment.');

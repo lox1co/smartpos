@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import {
   View,
   Text,
@@ -23,30 +23,38 @@ export default function ShopCategoryScreen() {
   const insets = useSafeAreaInsets();
   const { user, saveProfile, toastMsg, showToast } = useProfile();
 
-  const [selectedCategory, setSelectedCategory] = useState(user?.shopCategory || 'Retail / Apparel');
-  const [customCategory, setCustomCategory] = useState('');
-  const [isCustomMode, setIsCustomMode] = useState(false);
+  const [selectedCategory, setSelectedCategory] = useState(() => {
+    const current = user?.shopCategory || 'Retail / Apparel';
+    const isPreset = SHOP_CATEGORIES.some(
+      (c) =>
+        c.label.toLowerCase() === current.toLowerCase() ||
+        c.value.toLowerCase() === current.toLowerCase() ||
+        c.code.toLowerCase() === current.toLowerCase()
+    );
+    return isPreset ? current : 'Other';
+  });
+  const [customCategory, setCustomCategory] = useState(() => {
+    const current = user?.shopCategory || '';
+    const isPreset = SHOP_CATEGORIES.some(
+      (c) =>
+        c.label.toLowerCase() === current.toLowerCase() ||
+        c.value.toLowerCase() === current.toLowerCase() ||
+        c.code.toLowerCase() === current.toLowerCase()
+    );
+    return isPreset ? '' : current;
+  });
+  const [isCustomMode, setIsCustomMode] = useState(() => {
+    const current = user?.shopCategory || '';
+    if (!current) return false;
+    const isPreset = SHOP_CATEGORIES.some(
+      (c) =>
+        c.label.toLowerCase() === current.toLowerCase() ||
+        c.value.toLowerCase() === current.toLowerCase() ||
+        c.code.toLowerCase() === current.toLowerCase()
+    );
+    return !isPreset;
+  });
   const [saving, setSaving] = useState(false);
-
-  useEffect(() => {
-    if (user?.shopCategory) {
-      const current = user.shopCategory;
-      const isPreset = SHOP_CATEGORIES.some(
-        (c) =>
-          c.label.toLowerCase() === current.toLowerCase() ||
-          c.value.toLowerCase() === current.toLowerCase() ||
-          c.code.toLowerCase() === current.toLowerCase()
-      );
-      if (isPreset) {
-        setSelectedCategory(current);
-        setIsCustomMode(false);
-      } else {
-        setSelectedCategory('Other');
-        setCustomCategory(current);
-        setIsCustomMode(true);
-      }
-    }
-  }, [user]);
 
   const handleSelectPreset = (catLabel: string) => {
     Keyboard.dismiss();

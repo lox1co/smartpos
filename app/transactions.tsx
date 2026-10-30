@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo, useCallback } from 'react';
+import React, { useCallback } from 'react';
 import {
   View,
   Text,
@@ -11,8 +11,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { MaterialIcons } from '@expo/vector-icons';
 import * as Print from 'expo-print';
-import { useSessionStore } from '@/stores/session-store';
-import { listTransactions } from '@/db/repositories/transaction-repository';
+import { useTransactionHistory } from '@/hooks/use-transactions';
 import { TransactionSelect } from '@/db/schema/transactions';
 import { TransactionItemSelect } from '@/db/schema/transaction-items';
 import { formatCents } from '@/utils/money';
@@ -27,48 +26,18 @@ const PAYMENT_FILTERS = ['ALL', 'CASH', 'UPI', 'CARD', 'CREDIT'];
 export default function TransactionsScreen() {
   const router = useRouter();
   const params = useLocalSearchParams<{ invoice?: string }>();
-  const storeId = useSessionStore((state) => state.currentUser?.storeId ?? 'DEMO-1001');
-  const currencySymbol = useSessionStore((state) => state.currentUser?.currencySymbol ?? '$');
-
-  const [transactions, setTransactions] = useState<TransactionSelect[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [searchQuery, setSearchQuery] = useState('');
-  const [selectedMethod, setSelectedMethod] = useState('ALL');
-  const [selectedTx, setSelectedTx] = useState<TransactionSelect | null>(null);
-
-  const loadData = useCallback(async () => {
-    setIsLoading(true);
-    try {
-      const data = await listTransactions(storeId);
-      setTransactions(data);
-      if (params.invoice) {
-        const found = data.find((t) => t.invoiceNumber === params.invoice);
-        if (found) setSelectedTx(found);
-      }
-    } finally {
-      setIsLoading(false);
-    }
-  }, [storeId, params.invoice]);
-
-  useEffect(() => {
-    loadData();
-  }, [loadData]);
-
-  const filteredTransactions = useMemo(() => {
-    return transactions.filter((t) => {
-      if (selectedMethod !== 'ALL' && t.paymentMethod !== selectedMethod) {
-        return false;
-      }
-      if (searchQuery.trim()) {
-        const q = searchQuery.toLowerCase();
-        const matchInvoice = t.invoiceNumber.toLowerCase().includes(q);
-        const matchCustomer = (t.customerName || '').toLowerCase().includes(q);
-        const matchPhone = (t.customerPhone || '').includes(q);
-        if (!matchInvoice && !matchCustomer && !matchPhone) return false;
-      }
-      return true;
-    });
-  }, [transactions, selectedMethod, searchQuery]);
+  const {
+    transactions,
+    isLoading,
+    searchQuery,
+    selectedMethod,
+    selectedTx,
+    currencySymbol,
+    setSearchQuery,
+    setSelectedMethod,
+    setSelectedTx,
+    refreshTransactions,
+  } = useTransactionHistory(params.invoice);
 
   const handlePrint = async (items: TransactionItemSelect[]) => {
     if (!selectedTx) return;
@@ -110,7 +79,7 @@ export default function TransactionsScreen() {
         onPress={(tx) => setSelectedTx(tx)}
       />
     ),
-    [currencySymbol]
+    [currencySymbol, setSelectedTx]
   );
 
   return (
@@ -120,7 +89,7 @@ export default function TransactionsScreen() {
           <MaterialIcons name="arrow-back" size={24} color="#131b2e" />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>Transactions History</Text>
-        <TouchableOpacity onPress={loadData}>
+        <TouchableOpacity onPress={refreshTransactions}>
           <MaterialIcons name="refresh" size={24} color="#004fe6" />
         </TouchableOpacity>
       </View>
@@ -161,12 +130,12 @@ export default function TransactionsScreen() {
       </View>
 
       <FlatList
-        data={filteredTransactions}
+        data={transactions}
         keyExtractor={(item) => item.id}
         renderItem={renderItem}
         contentContainerStyle={styles.listContent}
         refreshing={isLoading}
-        onRefresh={loadData}
+        onRefresh={refreshTransactions}
         ListEmptyComponent={
           !isLoading ? (
             <View style={styles.emptyContainer}>

@@ -90,29 +90,32 @@ customersRouter.get("/customers/:customer_id", async (request, response) => {
 });
 
 customersRouter.post("/customers/:customer_id/payment", async (request, response) => {
-  const customerId = Number(request.params["customer_id"]);
+  const param = String(request.params["customer_id"] || "");
+  const customerId = Number(param);
   const input = parse(paymentSchema, request.body);
   const storeId = request.auth!.storeId;
   const amount = new Prisma.Decimal(input.amount);
   const customer = await prisma.$transaction(async (tx) => {
-    const found = await tx.customer.findFirst({ where: { id: customerId, storeId } });
+    const found = await tx.customer.findFirst({
+      where: !Number.isNaN(customerId) ? { id: customerId, storeId } : { name: param, storeId },
+    });
     if (!found) throw new HttpError(404, "Customer not found");
     const update = await tx.customer.updateMany({
-      where: { id: customerId, storeId, creditBalance: { gte: amount } },
+      where: { id: found.id, storeId, creditBalance: { gte: amount } },
       data: { creditBalance: { decrement: amount } },
     });
     if (update.count !== 1) throw new HttpError(400, "Payment amount exceeds the outstanding balance");
     await tx.creditEntry.create({
       data: {
         storeId,
-        customerId,
+        customerId: found.id,
         entryType: "CREDIT",
         amount,
         note: input.note?.trim() || "Payment received",
       },
     });
     return tx.customer.findUnique({
-      where: { id: customerId },
+      where: { id: found.id },
       include: { entries: { orderBy: [{ createdAt: "desc" }, { id: "desc" }] } },
     });
   });

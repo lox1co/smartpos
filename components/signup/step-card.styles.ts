@@ -1,5 +1,4 @@
 import { StyleSheet } from 'react-native';
-import { THEME } from './signup.styles';
 
 export const stepStyles = StyleSheet.create({
   stepProgressContainer: {

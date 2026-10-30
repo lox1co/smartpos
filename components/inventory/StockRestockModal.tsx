@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import {
   Modal,
   View,
@@ -27,13 +27,6 @@ export const StockRestockModal = ({
 }: StockRestockModalProps) => {
   const [qty, setQty] = useState('10');
   const [loading, setLoading] = useState(false);
-
-  useEffect(() => {
-    if (visible) {
-      setQty('10');
-      setLoading(false);
-    }
-  }, [visible]);
 
   if (!visible || !product) return null;
 

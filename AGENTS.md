@@ -56,7 +56,30 @@ Cada archivo sigue este orden:
 4. Componente o función principal.
 5. Exports.
 
-## Relación de Dependencias y Arquitectura de Capas (Grafo de Imports)
+## 3.2. Estructura de Directorios y Separación de Capas (Clean Architecture & Feature-Sliced Modular)
+
+Esta es la única arquitectura autorizada para el proyecto:
+
+```
+app/                        Rutas (Expo Router). Solo composición, layouts y navegación (< 400 líneas). Sin lógica SQL ni llamadas HTTP directas.
+components/
+  ui/                       Componentes base reutilizables (< 400 líneas). Extraídos estrictamente de duplicaciones reales.
+  <feature>/                Componentes visuales propios de una funcionalidad (< 400 líneas). Solo reciben props o hooks de dominio.
+hooks/                      Hooks de presentación y adaptadores de dominio (< 400 líneas). Orquestan repositorios y stores.
+db/
+  client.ts                 Inicialización de expo-sqlite y drizzle-orm (WAL, Synchronous Normal) (< 400 líneas).
+  schema/                   Tablas Drizzle y relaciones formalizadas (< 400 líneas por archivo).
+  migrations/               Migraciones versionadas generadas por drizzle-kit y aplicadas vía migrator en runtime.
+  repositories/             Acceso a datos transaccional SQLite (< 400 líneas por repo).
+services/                   Workers en segundo plano (sync outbox), red, autenticación y hardware (< 400 líneas).
+stores/                     Stores Zustand para estado de UI y sesión (< 400 líneas).
+schemas/                    Esquemas Zod para validación y tipos inferidos (< 400 líneas).
+constants/                  Tokens de diseño, tema, configuración inmutable (< 400 líneas).
+utils/                      Funciones puras libres de dependencias externas (money.ts) (< 400 líneas).
+types/                      Tipos compartidos globales no inferibles (< 400 líneas).
+```
+
+## 3.3. Matriz de Dependencias Unidireccionales (Grafo Estricto de Imports)
 
 Para garantizar desacoplamiento estricto y evitar ciclos de dependencias o fugas de responsabilidades, la jerarquía de imports permitida es unidireccional:
 
@@ -79,12 +102,12 @@ Para garantizar desacoplamiento estricto y evitar ciclos de dependencias o fugas
        [ schemas/ | utils/ | constants/ | types/ ]
 ```
 
-### Reglas estrictas de importación:
+### Reglas estrictas de importación por capa:
 
 | Capa | Qué PUEDE importar | Qué TIENE PROHIBIDO importar |
 | :--- | :--- | :--- |
 | **`app/` (Pantallas)** | `components/`, `hooks/`, `stores/`, `constants/`, `types/` | `db/repositories/`, `db/client.ts`, llamadas HTTP directas (`fetch`/`axios`). |
-| **`components/ui/` (Design System)** | React Native, `constants/` (tokens), `utils/` | `stores/`, `db/`, `hooks/` de negocio, `services/`. UI pura y agnóstica. |
+| **`components/ui/` (Design System)** | React Native, `constants/` (tokens), `utils/` | `stores/`, `db/`, `hooks/` de negocio, `services/`. UI pura y agnóstica. Prohibido crear componentes especulativos sin uso real existente. |
 | **`components/<feature>/`** | `components/ui/`, `hooks/`, `stores/`, `schemas/`, `constants/` | `db/repositories/`, `db/client.ts`, llamadas HTTP directas. |
 | **`hooks/` (Presentación / Dominio)** | `stores/`, `db/repositories/`, `services/`, `schemas/`, `utils/`, `constants/` | `components/`, `app/`. |
 | **`stores/` (Zustand UI State)** | `schemas/`, `utils/`, `constants/`, `types/` | `components/`, `app/`, `db/repositories/`, `db/client.ts`. |
@@ -120,33 +143,13 @@ Para garantizar desacoplamiento estricto y evitar ciclos de dependencias o fugas
 - Migraciones con `drizzle-kit` versionadas y aplicadas de forma segura al arrancar la app.
 - Prohibido el uso de la clase singleton `ProductStore` (`constants/store.ts`) para nuevos desarrollos.
 
-## Estructura de archivos
-
-```
-app/                  rutas (Expo Router), solo composición (< 400 líneas)
-components/
-  ui/                 componentes base reutilizables (Button, Input, Card…) (< 400 líneas)
-  <feature>/          componentes de una funcionalidad (< 400 líneas)
-hooks/                hooks reutilizables y de dominio (< 400 líneas)
-stores/               stores Zustand por dominio (< 400 líneas)
-schemas/              esquemas Zod (< 400 líneas)
-db/
-  client.ts           inicialización de expo-sqlite y drizzle-orm (< 400 líneas)
-  schema/             tablas Drizzle (< 400 líneas por archivo)
-  migrations/         migraciones versionadas generadas por drizzle-kit
-  repositories/       acceso a datos transaccional (< 400 líneas por repo)
-services/             sync worker, red, hardware (< 400 líneas por servicio)
-constants/            tema, configuración (< 400 líneas)
-utils/                funciones puras (< 400 líneas)
-types/                tipos compartidos no inferibles (< 400 líneas)
-```
-
 ## Componentes reutilizables
 
+- **Prohibido crear componentes por si acaso o para un futuro hipotético**.
+- Todo componente en `components/ui/` debe nacer estrictamente a partir de la extracción de código duplicado cuando se reutilice efectivamente en 2 o más lugares.
 - Antes de crear un componente, buscar si ya existe uno reutilizable en `components/ui/`.
 - Un componente = un archivo = una responsabilidad; props tipadas explícitamente.
 - Estilos y tokens centralizados en `constants/`; sin valores mágicos en línea.
-- Si algo se usa en 2 o más lugares, extraerlo a `components/ui/` o `hooks/`.
 
 ## Calidad
 

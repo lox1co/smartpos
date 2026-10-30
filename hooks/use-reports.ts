@@ -1,9 +1,13 @@
 import { useState, useEffect, useCallback, useMemo } from 'react';
 import { Alert } from 'react-native';
 import { useSessionStore } from '@/stores/session-store';
-import { listTransactionsByDateRange } from '@/db/repositories/transaction-repository';
+import {
+  listTransactionsByDateRange,
+  getTransactionReportSummary,
+  ReportSummaryResult,
+} from '@/db/repositories/transaction-repository';
 import { TransactionSelect } from '@/db/schema/transactions';
-import { formatCents } from '@/utils/money';
+import { formatCents, fromCents } from '@/utils/money';
 import { toCsv, shareTextFile, shareHtmlAsPdf } from '@/constants/export';
 
 export type RangeId = 'today' | '7d' | '30d' | 'month';
@@ -34,6 +38,16 @@ function computeRange(id: RangeId): { start: Date; end: Date } {
   return { start, end };
 }
 
+const EMPTY_SUMMARY: ReportSummaryResult = {
+  salesCents: 0,
+  subtotalCents: 0,
+  discountCents: 0,
+  taxCents: 0,
+  creditCents: 0,
+  orders: 0,
+  byMethod: {},
+};
+
 export const useReports = () => {
   const storeId = useSessionStore((state) => state.currentUser?.storeId ?? 'DEMO-1001');
   const shopName = useSessionStore((state) => state.currentUser?.shopName ?? 'SmartPOS Store');
@@ -44,60 +58,70 @@ export const useReports = () => {
   const [loading, setLoading] = useState(false);
   const [exporting, setExporting] = useState(false);
   const [txns, setTxns] = useState<TransactionSelect[]>([]);
+  const [summaryData, setSummaryData] = useState<ReportSummaryResult>(EMPTY_SUMMARY);
 
   const { start, end } = useMemo(() => computeRange(rangeId), [rangeId]);
 
   const loadData = useCallback(async () => {
     setLoading(true);
     try {
-      const data = await listTransactionsByDateRange(storeId, start.getTime(), end.getTime());
-      setTxns(data);
+      const [list, summary] = await Promise.all([
+        listTransactionsByDateRange(storeId, start.getTime(), end.getTime()),
+        getTransactionReportSummary(storeId, start.getTime(), end.getTime()),
+      ]);
+      setTxns(list);
+      setSummaryData(summary);
     } catch {
       setTxns([]);
+      setSummaryData(EMPTY_SUMMARY);
     } finally {
       setLoading(false);
     }
   }, [storeId, start, end]);
 
   useEffect(() => {
-    void loadData();
-  }, [loadData]);
+    let isMounted = true;
+    const execute = async () => {
+      try {
+        const [list, summary] = await Promise.all([
+          listTransactionsByDateRange(storeId, start.getTime(), end.getTime()),
+          getTransactionReportSummary(storeId, start.getTime(), end.getTime()),
+        ]);
+        if (isMounted) {
+          setTxns(list);
+          setSummaryData(summary);
+        }
+      } catch {
+        if (isMounted) {
+          setTxns([]);
+          setSummaryData(EMPTY_SUMMARY);
+        }
+      } finally {
+        if (isMounted) setLoading(false);
+      }
+    };
+    void execute();
+    return () => {
+      isMounted = false;
+    };
+  }, [storeId, start, end]);
 
   const summary = useMemo(() => {
-    let salesCents = 0;
-    let subtotalCents = 0;
-    let discountCents = 0;
-    let taxCents = 0;
-    let creditCents = 0;
-    const byMethod: Record<string, { count: number; amountCents: number }> = {};
-
-    txns.forEach((t) => {
-      salesCents += t.totalCents;
-      subtotalCents += t.subtotalCents;
-      discountCents += t.discountCents;
-      taxCents += t.taxCents;
-      if (t.paymentStatus === 'CREDIT') creditCents += t.totalCents;
-      const key = t.paymentMethod || 'OTHER';
-      if (!byMethod[key]) byMethod[key] = { count: 0, amountCents: 0 };
-      byMethod[key].count += 1;
-      byMethod[key].amountCents += t.totalCents;
-    });
-
-    const cgstCents = Math.round(taxCents / 2);
-    const sgstCents = taxCents - cgstCents;
+    const cgstCents = Math.round(summaryData.taxCents / 2);
+    const sgstCents = summaryData.taxCents - cgstCents;
 
     return {
-      salesCents,
-      subtotalCents,
-      discountCents,
-      taxCents,
+      salesCents: summaryData.salesCents,
+      subtotalCents: summaryData.subtotalCents,
+      discountCents: summaryData.discountCents,
+      taxCents: summaryData.taxCents,
       cgstCents,
       sgstCents,
-      creditCents,
-      orders: txns.length,
-      byMethod,
+      creditCents: summaryData.creditCents,
+      orders: summaryData.orders,
+      byMethod: summaryData.byMethod,
     };
-  }, [txns]);
+  }, [summaryData]);
 
   const rangeLabel = `${ymd(start)} → ${ymd(end)}`;
 
@@ -125,12 +149,12 @@ export const useReports = () => {
         t.customerName || '',
         t.paymentMethod,
         t.paymentStatus,
-        (t.subtotalCents / 100).toFixed(2),
-        (t.discountCents / 100).toFixed(2),
-        (t.taxCents / 100).toFixed(2),
-        (cgst / 100).toFixed(2),
-        (sgst / 100).toFixed(2),
-        (t.totalCents / 100).toFixed(2),
+        fromCents(t.subtotalCents).toFixed(2),
+        fromCents(t.discountCents).toFixed(2),
+        fromCents(t.taxCents).toFixed(2),
+        fromCents(cgst).toFixed(2),
+        fromCents(sgst).toFixed(2),
+        fromCents(t.totalCents).toFixed(2),
       ]);
     });
     rows.push([]);
@@ -140,12 +164,12 @@ export const useReports = () => {
       '',
       '',
       '',
-      (summary.subtotalCents / 100).toFixed(2),
-      (summary.discountCents / 100).toFixed(2),
-      (summary.taxCents / 100).toFixed(2),
-      (summary.cgstCents / 100).toFixed(2),
-      (summary.sgstCents / 100).toFixed(2),
-      (summary.salesCents / 100).toFixed(2),
+      fromCents(summary.subtotalCents).toFixed(2),
+      fromCents(summary.discountCents).toFixed(2),
+      fromCents(summary.taxCents).toFixed(2),
+      fromCents(summary.cgstCents).toFixed(2),
+      fromCents(summary.sgstCents).toFixed(2),
+      fromCents(summary.salesCents).toFixed(2),
     ]);
     return toCsv(rows);
   };
@@ -247,5 +271,6 @@ export const useReports = () => {
     currencySymbol,
     handleExportCsv,
     handleExportPdf,
+    refreshReports: loadData,
   };
 };

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import {
   StyleSheet,
   View,
@@ -28,11 +28,6 @@ export default function ShopAddressScreen() {
   const [gstNumber] = useState(user?.gstNumber || '');
   const [saving, setSaving] = useState(false);
 
-  useEffect(() => {
-    if (user?.businessAddress) {
-      setBusinessAddress(user.businessAddress);
-    }
-  }, [user]);
 
   const handleSave = async () => {
     Keyboard.dismiss();

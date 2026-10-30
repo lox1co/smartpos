@@ -1,7 +1,7 @@
 import React from 'react';
 import { View, Text, TouchableOpacity, Animated } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
-import { styles, BOX_HEIGHT } from './scanner.styles';
+import { styles } from './scanner.styles';
 
 interface ScannerOverlayProps {
   torch: boolean;

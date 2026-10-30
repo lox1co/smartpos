@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import {
   StyleSheet,
   View,
@@ -25,11 +25,6 @@ export default function ShopPhoneScreen() {
   const [phone, setPhone] = useState(user?.phone || '');
   const [saving, setSaving] = useState(false);
 
-  useEffect(() => {
-    if (user?.phone) {
-      setPhone(user.phone);
-    }
-  }, [user]);
 
   const handleSave = async () => {
     Keyboard.dismiss();

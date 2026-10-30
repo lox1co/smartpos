@@ -1,6 +1,8 @@
 import { eq, and, like, or, sql } from 'drizzle-orm';
 import { db } from '../client';
 import { products, ProductSelect, ProductInsert } from '../schema/products';
+import { syncOutbox } from '../schema/sync-outbox';
+import { generateUuid } from '@/utils/uuid';
 
 export const getProductById = async (id: string): Promise<ProductSelect | undefined> => {
   const result = await db.select().from(products).where(eq(products.id, id)).limit(1);
@@ -39,23 +41,44 @@ export const listProducts = async (
   return db.select().from(products).where(and(...conditions));
 };
 
-export const upsertProducts = async (items: ProductInsert[]): Promise<void> => {
+export const upsertProducts = async (
+  items: ProductInsert[],
+  enqueueSync: boolean = true
+): Promise<void> => {
   if (items.length === 0) return;
-  await db.insert(products).values(items).onConflictDoUpdate({
-    target: products.id,
-    set: {
-      name: sql`excluded.name`,
-      priceCents: sql`excluded.price_cents`,
-      costPriceCents: sql`excluded.cost_price_cents`,
-      stock: sql`excluded.stock`,
-      lowStockAlert: sql`excluded.low_stock_alert`,
-      category: sql`excluded.category`,
-      unit: sql`excluded.unit`,
-      taxRate: sql`excluded.tax_rate`,
-      image: sql`excluded.image`,
-      isActive: sql`excluded.is_active`,
-      updatedAt: sql`excluded.updated_at`,
-    },
+  await db.transaction(async (tx) => {
+    await tx.insert(products).values(items).onConflictDoUpdate({
+      target: products.id,
+      set: {
+        name: sql`excluded.name`,
+        priceCents: sql`excluded.price_cents`,
+        costPriceCents: sql`excluded.cost_price_cents`,
+        stock: sql`excluded.stock`,
+        lowStockAlert: sql`excluded.low_stock_alert`,
+        category: sql`excluded.category`,
+        unit: sql`excluded.unit`,
+        taxRate: sql`excluded.tax_rate`,
+        image: sql`excluded.image`,
+        isActive: sql`excluded.is_active`,
+        updatedAt: sql`excluded.updated_at`,
+      },
+    });
+
+    if (enqueueSync) {
+      const now = Date.now();
+      for (const item of items) {
+        await tx.insert(syncOutbox).values({
+          id: generateUuid(),
+          storeId: item.storeId,
+          entityType: 'PRODUCT',
+          entityId: item.id,
+          payloadJson: JSON.stringify(item),
+          status: 'pending',
+          retryCount: 0,
+          createdAt: now,
+        });
+      }
+    }
   });
 };
 
@@ -80,11 +103,27 @@ export const restockProductStock = async (id: string, quantity: number): Promise
 };
 
 export const deleteProductById = async (id: string): Promise<void> => {
-  await db
-    .update(products)
-    .set({
-      isActive: false,
-      updatedAt: Date.now(),
-    })
-    .where(eq(products.id, id));
+  await db.transaction(async (tx) => {
+    const existing = await tx.select().from(products).where(eq(products.id, id)).limit(1);
+    await tx
+      .update(products)
+      .set({
+        isActive: false,
+        updatedAt: Date.now(),
+      })
+      .where(eq(products.id, id));
+
+    if (existing[0]) {
+      await tx.insert(syncOutbox).values({
+        id: generateUuid(),
+        storeId: existing[0].storeId,
+        entityType: 'PRODUCT_DELETE',
+        entityId: id,
+        payloadJson: JSON.stringify({ id, sku: existing[0].sku }),
+        status: 'pending',
+        retryCount: 0,
+        createdAt: Date.now(),
+      });
+    }
+  });
 };

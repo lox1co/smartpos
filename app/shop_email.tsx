@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import {
   StyleSheet,
   View,
@@ -25,11 +25,6 @@ export default function ShopEmailScreen() {
   const [email, setEmail] = useState(user?.email || '');
   const [saving, setSaving] = useState(false);
 
-  useEffect(() => {
-    if (user?.email) {
-      setEmail(user.email);
-    }
-  }, [user]);
 
   const handleSave = async () => {
     Keyboard.dismiss();

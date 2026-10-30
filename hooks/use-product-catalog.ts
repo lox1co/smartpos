@@ -8,7 +8,7 @@ export const useProductCatalog = (category?: string, query?: string) => {
   const [products, setProducts] = useState<ProductSelect[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
-  const loadProducts = useCallback(async () => {
+  const refreshCatalog = useCallback(async () => {
     setIsLoading(true);
     try {
       const result = await listProducts(storeId, category, query);
@@ -21,12 +21,26 @@ export const useProductCatalog = (category?: string, query?: string) => {
   }, [storeId, category, query]);
 
   useEffect(() => {
-    loadProducts();
-  }, [loadProducts]);
+    let isMounted = true;
+    const execute = async () => {
+      try {
+        const result = await listProducts(storeId, category, query);
+        if (isMounted) setProducts(result);
+      } catch {
+        if (isMounted) setProducts([]);
+      } finally {
+        if (isMounted) setIsLoading(false);
+      }
+    };
+    void execute();
+    return () => {
+      isMounted = false;
+    };
+  }, [storeId, category, query]);
 
   return {
     products,
     isLoading,
-    refreshCatalog: loadProducts,
+    refreshCatalog,
   };
 };

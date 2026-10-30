@@ -19,7 +19,7 @@ function safeName(name: string): string {
 export async function shareTextFile(
   filename: string,
   contents: string,
-  mimeType: string,
+  mimeType: string
 ): Promise<string | null> {
   if (Platform.OS === 'web' || !(await Sharing.isAvailableAsync())) {
     return null;
@@ -42,4 +42,8 @@ export async function shareHtmlAsPdf(html: string, dialogTitle: string): Promise
     dialogTitle,
   });
   return uri;
+}
+
+export async function printHtml(html: string): Promise<void> {
+  await Print.printAsync({ html });
 }
