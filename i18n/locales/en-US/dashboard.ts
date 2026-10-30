@@ -32,4 +32,13 @@ export const dashboard = {
     empty: 'No recent transactions',
     items: '{{count}} items',
   },
+  days: {
+    sun: 'Sun',
+    mon: 'Mon',
+    tue: 'Tue',
+    wed: 'Wed',
+    thu: 'Thu',
+    fri: 'Fri',
+    sat: 'Sat',
+  },
 } as const;

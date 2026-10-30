@@ -1,6 +1,7 @@
 import { useState, useCallback } from 'react';
-import { Alert, Platform } from 'react-native';
+import { Alert } from 'react-native';
 import { useRouter } from 'expo-router';
+import * as Clipboard from 'expo-clipboard';
 import { useTranslation } from 'react-i18next';
 import { useSessionStore } from '@/stores/session-store';
 import { updateUserProfile } from '@/services/profile-service';
@@ -33,9 +34,8 @@ export const useProfile = () => {
 
   const handleCopyStoreId = useCallback(() => {
     const code = currentUser?.storeId || '';
-    if (Platform.OS === 'web' && typeof navigator !== 'undefined' && navigator.clipboard) {
-      void navigator.clipboard.writeText(code);
-    }
+    if (!code) return;
+    void Clipboard.setStringAsync(code);
     setCopiedStoreId(true);
     showToast(t('profile:toasts.storeIdCopied'));
     setTimeout(() => setCopiedStoreId(false), 2500);

@@ -8,14 +8,18 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter, useFocusEffect } from 'expo-router';
+import { useTranslation } from 'react-i18next';
 import { MaterialIcons } from '@expo/vector-icons';
 import Svg, { Path, Defs, LinearGradient, Stop } from 'react-native-svg';
 import { useDashboardMetrics } from '@/hooks/use-dashboard-metrics';
 import { formatCents } from '@/utils/money';
 import { styles } from '@/components/dashboard/dashboard.styles';
 
+const DEFAULT_DAYS = ['mon', 'tue', 'wed', 'thu', 'fri', 'sat', 'sun'] as const;
+
 export default function DashboardScreen() {
   const router = useRouter();
+  const { t } = useTranslation(['common', 'dashboard']);
   const { metrics, isLoading, currencySymbol, refreshMetrics } = useDashboardMetrics();
 
   useFocusEffect(
@@ -58,10 +62,18 @@ export default function DashboardScreen() {
   const { areaPath, linePath } = generateChartPaths();
   const isPositiveGrowth = metrics.salesGrowthPercentage >= 0;
 
+  const translateDay = (dayStr: string) => {
+    const lower = dayStr.toLowerCase().slice(0, 3) as (typeof DEFAULT_DAYS)[number] | 'sun';
+    if (lower === 'sun' || DEFAULT_DAYS.includes(lower as (typeof DEFAULT_DAYS)[number])) {
+      return t(`dashboard:days.${lower}`);
+    }
+    return dayStr;
+  };
+
   return (
     <SafeAreaView style={styles.outerContainer} edges={['top']}>
       <View style={styles.header}>
-        <Text style={styles.headerTitle}>SmartPOS</Text>
+        <Text style={styles.headerTitle}>{t('dashboard:header.title')}</Text>
         <View style={styles.headerActions}>
           <TouchableOpacity
             style={styles.headerIconButton}
@@ -80,7 +92,7 @@ export default function DashboardScreen() {
         <View style={styles.mainContainer}>
           <View style={styles.bentoGrid}>
             <View style={[styles.bentoCard, styles.salesCard]}>
-              <Text style={styles.bentoLabel}>{"Today's Sales"}</Text>
+              <Text style={styles.bentoLabel}>{t('dashboard:bento.todaySales')}</Text>
               <Text style={styles.salesValue}>
                 {formatCents(metrics.todaySalesCents, currencySymbol)}
               </Text>
@@ -97,18 +109,18 @@ export default function DashboardScreen() {
                   ]}
                 >
                   {isPositiveGrowth && metrics.salesGrowthPercentage > 0 ? '+' : ''}
-                  {metrics.salesGrowthPercentage.toFixed(1)}% vs yesterday
+                  {metrics.salesGrowthPercentage.toFixed(1)}% {t('dashboard:bento.vsYesterday')}
                 </Text>
               </View>
             </View>
 
             <View style={styles.bentoRow}>
               <View style={[styles.bentoCard, styles.halfCard]}>
-                <Text style={styles.bentoLabel}>Orders</Text>
+                <Text style={styles.bentoLabel}>{t('dashboard:bento.orders')}</Text>
                 <Text style={styles.bentoValue}>{metrics.ordersCount}</Text>
               </View>
               <View style={[styles.bentoCard, styles.halfCard]}>
-                <Text style={styles.bentoLabel}>Profit</Text>
+                <Text style={styles.bentoLabel}>{t('dashboard:bento.profit')}</Text>
                 <Text style={styles.bentoValue}>
                   {formatCents(metrics.profitCents, currencySymbol)}
                 </Text>
@@ -117,39 +129,39 @@ export default function DashboardScreen() {
           </View>
 
           <View style={styles.actionsSection}>
-            <Text style={styles.sectionLabel}>Quick Actions</Text>
+            <Text style={styles.sectionLabel}>{t('dashboard:actions.title')}</Text>
             <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.actionsScroll}>
               <TouchableOpacity
                 style={[styles.actionButton, styles.primaryActionButton]}
                 onPress={() => router.push('/billing')}
               >
                 <MaterialIcons name="point-of-sale" size={24} color="#ffffff" style={styles.actionIcon} />
-                <Text style={styles.primaryActionText}>New Sale</Text>
+                <Text style={styles.primaryActionText}>{t('dashboard:actions.newSale')}</Text>
               </TouchableOpacity>
 
               <TouchableOpacity style={styles.actionButton} onPress={() => router.push('/add_product')}>
                 <MaterialIcons name="add-box" size={24} color="#131b2e" style={styles.actionIcon} />
-                <Text style={styles.actionText}>Add Product</Text>
+                <Text style={styles.actionText}>{t('dashboard:actions.addProduct')}</Text>
               </TouchableOpacity>
 
               <TouchableOpacity style={styles.actionButton} onPress={() => router.push('/inventory')}>
                 <MaterialIcons name="inventory" size={24} color="#131b2e" style={styles.actionIcon} />
-                <Text style={styles.actionText}>Stock Entry</Text>
+                <Text style={styles.actionText}>{t('dashboard:actions.stockEntry')}</Text>
               </TouchableOpacity>
 
               <TouchableOpacity style={styles.actionButton} onPress={() => router.push('/transactions')}>
                 <MaterialIcons name="receipt-long" size={24} color="#131b2e" style={styles.actionIcon} />
-                <Text style={styles.actionText}>History</Text>
+                <Text style={styles.actionText}>{t('dashboard:actions.history')}</Text>
               </TouchableOpacity>
 
               <TouchableOpacity style={styles.actionButton} onPress={() => router.push('/customers')}>
                 <MaterialIcons name="account-balance-wallet" size={24} color="#004fe6" style={styles.actionIcon} />
-                <Text style={[styles.actionText, { color: '#004fe6', fontWeight: '600' }]}>Khata / Credit</Text>
+                <Text style={[styles.actionText, { color: '#004fe6', fontWeight: '600' }]}>{t('dashboard:actions.credit')}</Text>
               </TouchableOpacity>
 
               <TouchableOpacity style={styles.actionButton} onPress={() => router.push('/reports')}>
                 <MaterialIcons name="assessment" size={24} color="#131b2e" style={styles.actionIcon} />
-                <Text style={styles.actionText}>Reports</Text>
+                <Text style={styles.actionText}>{t('dashboard:actions.reports')}</Text>
               </TouchableOpacity>
             </ScrollView>
           </View>
@@ -158,10 +170,12 @@ export default function DashboardScreen() {
             <View style={styles.alertsHeader}>
               <View style={styles.alertsTitleContainer}>
                 <MaterialIcons name="warning" size={20} color="#ba1a1a" />
-                <Text style={styles.alertsTitle}>Low Stock Alerts</Text>
+                <Text style={styles.alertsTitle}>{t('dashboard:alerts.title')}</Text>
               </View>
               <View style={styles.alertsBadge}>
-                <Text style={styles.alertsBadgeText}>{metrics.lowStockAlerts.length} Items</Text>
+                <Text style={styles.alertsBadgeText}>
+                  {t('dashboard:alerts.itemsCount', { count: metrics.lowStockAlerts.length })}
+                </Text>
               </View>
             </View>
 
@@ -175,17 +189,19 @@ export default function DashboardScreen() {
                   ]}
                 >
                   <Text style={styles.alertItemName}>{item.name}</Text>
-                  <Text style={styles.alertItemQty}>{item.stock} left</Text>
+                  <Text style={styles.alertItemQty}>
+                    {t('dashboard:alerts.left', { count: item.stock })}
+                  </Text>
                 </View>
               ))}
               {metrics.lowStockAlerts.length === 0 && (
-                <Text style={styles.emptyAlertText}>No low stock alerts</Text>
+                <Text style={styles.emptyAlertText}>{t('dashboard:alerts.empty')}</Text>
               )}
             </View>
           </View>
 
           <View style={styles.chartCard}>
-            <Text style={styles.chartTitle}>Revenue Trend</Text>
+            <Text style={styles.chartTitle}>{t('dashboard:revenueTrend.title')}</Text>
             <View style={styles.chartContainer}>
               <Svg width="100%" height="100%" viewBox="0 0 350 120" preserveAspectRatio="none" style={{ overflow: 'visible' }}>
                 <Defs>
@@ -201,11 +217,15 @@ export default function DashboardScreen() {
             <View style={styles.chartLabelsRow}>
               {metrics.weeklyTrend.length > 0 ? (
                 metrics.weeklyTrend.map((trendItem, idx) => (
-                  <Text key={idx} style={styles.chartLabel}>{trendItem.day}</Text>
+                  <Text key={idx} style={styles.chartLabel}>
+                    {translateDay(trendItem.day)}
+                  </Text>
                 ))
               ) : (
-                ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'].map((d, idx) => (
-                  <Text key={idx} style={styles.chartLabel}>{d}</Text>
+                DEFAULT_DAYS.map((d, idx) => (
+                  <Text key={idx} style={styles.chartLabel}>
+                    {t(`dashboard:days.${d}`)}
+                  </Text>
                 ))
               )}
             </View>
@@ -213,9 +233,9 @@ export default function DashboardScreen() {
 
           <View style={styles.transactionsCard}>
             <View style={styles.transactionsHeader}>
-              <Text style={styles.transactionsTitle}>Recent Transactions</Text>
+              <Text style={styles.transactionsTitle}>{t('dashboard:transactions.title')}</Text>
               <TouchableOpacity onPress={() => router.push('/transactions')}>
-                <Text style={styles.seeAllLink}>See All</Text>
+                <Text style={styles.seeAllLink}>{t('dashboard:transactions.seeAll')}</Text>
               </TouchableOpacity>
             </View>
 
@@ -238,7 +258,7 @@ export default function DashboardScreen() {
                     <View style={styles.transactionDetails}>
                       <Text style={styles.transactionOrder}>{tx.invoiceNumber || `Order #${tx.id}`}</Text>
                       <Text style={styles.transactionTime}>
-                        {timeString} • {tx.itemsCount} items {tx.paymentMethod ? `• ${tx.paymentMethod}` : ''}
+                        {timeString} • {t('dashboard:transactions.items', { count: tx.itemsCount })} {tx.paymentMethod ? `• ${tx.paymentMethod}` : ''}
                       </Text>
                     </View>
                     <Text style={styles.transactionAmount}>
@@ -248,7 +268,7 @@ export default function DashboardScreen() {
                 );
               })}
               {metrics.recentTransactions.length === 0 && (
-                <Text style={styles.emptyTransactionsText}>No recent transactions</Text>
+                <Text style={styles.emptyTransactionsText}>{t('dashboard:transactions.empty')}</Text>
               )}
             </View>
           </View>

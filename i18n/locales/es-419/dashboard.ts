@@ -34,4 +34,13 @@ export const dashboard: LocaleShape['dashboard'] = {
     empty: 'No hay transacciones recientes',
     items: '{{count}} artículos',
   },
+  days: {
+    sun: 'Dom',
+    mon: 'Lun',
+    tue: 'Mar',
+    wed: 'Mié',
+    thu: 'Jue',
+    fri: 'Vie',
+    sat: 'Sáb',
+  },
 };

@@ -12,6 +12,7 @@ import {
 } from 'react-native';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
+import * as Clipboard from 'expo-clipboard';
 import { useTranslation } from 'react-i18next';
 import { Image } from 'expo-image';
 import { MaterialIcons } from '@expo/vector-icons';
@@ -50,9 +51,7 @@ export default function StoreInfoScreen() {
 
   const handleCopyStoreId = () => {
     if (!storeId) return;
-    if (Platform.OS === 'web' && typeof navigator !== 'undefined' && navigator.clipboard) {
-      void navigator.clipboard.writeText(storeId);
-    }
+    void Clipboard.setStringAsync(storeId);
     setCopiedStoreId(true);
     showToast(t('shop:storeInfo.toastCopied'));
     setTimeout(() => setCopiedStoreId(false), 2500);
