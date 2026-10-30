@@ -9,10 +9,12 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { StatusBar } from 'expo-status-bar';
 import { useRouter } from 'expo-router';
+import { useTranslation } from 'react-i18next';
 import { useSessionStore } from '@/stores/session-store';
 
 export default function SplashScreen() {
   const router = useRouter();
+  const { t } = useTranslation('common');
 
   const [fadeAnim] = useState(() => new Animated.Value(0));
   const [slideAnim] = useState(() => new Animated.Value(20));
@@ -123,7 +125,7 @@ export default function SplashScreen() {
         </Animated.View>
 
         <Text style={styles.brandTitle}>SmartPOS</Text>
-        <Text style={styles.brandSubtitle}>Retail & Warehouse Management</Text>
+        <Text style={styles.brandSubtitle}>{t('common:brand.subtitle')}</Text>
       </Animated.View>
 
       <View style={styles.footer}>

@@ -7,6 +7,7 @@ import {
   TouchableOpacity,
   ScrollView,
 } from 'react-native';
+import { useTranslation } from 'react-i18next';
 import { MaterialIcons } from '@expo/vector-icons';
 import { SHOP_CATEGORIES } from '@/constants/config';
 import { modalStyles } from './modal.styles';
@@ -33,6 +34,8 @@ export const CategoryModal: React.FC<CategoryModalProps> = ({
   onSelect,
   onClose,
 }) => {
+  const { t } = useTranslation(['common', 'signup']);
+
   return (
     <Modal visible={visible} transparent animationType="fade" onRequestClose={onClose}>
       <Pressable style={modalStyles.modalOverlay} onPress={onClose}>
@@ -40,7 +43,7 @@ export const CategoryModal: React.FC<CategoryModalProps> = ({
           <View style={modalStyles.modalHeader}>
             <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
               <MaterialIcons name="category" size={22} color="#2563eb" />
-              <Text style={modalStyles.modalTitle}>Select Shop Category</Text>
+              <Text style={modalStyles.modalTitle}>{t('signup:modals.selectCategory')}</Text>
             </View>
             <TouchableOpacity onPress={onClose} style={modalStyles.modalCloseBtn}>
               <MaterialIcons name="close" size={20} color="#64748b" />
@@ -94,7 +97,7 @@ interface CountryModalProps {
   selectedCode: string;
   onSelect: (code: string) => void;
   onClose: () => void;
-}
+  }
 
 export const CountryModal: React.FC<CountryModalProps> = ({
   visible,
@@ -102,6 +105,8 @@ export const CountryModal: React.FC<CountryModalProps> = ({
   onSelect,
   onClose,
 }) => {
+  const { t } = useTranslation(['common', 'signup']);
+
   return (
     <Modal visible={visible} transparent animationType="fade" onRequestClose={onClose}>
       <Pressable style={modalStyles.modalOverlay} onPress={onClose}>
@@ -109,7 +114,7 @@ export const CountryModal: React.FC<CountryModalProps> = ({
           <View style={modalStyles.modalHeader}>
             <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
               <MaterialIcons name="flag" size={22} color="#2563eb" />
-              <Text style={modalStyles.modalTitle}>Select Country Code</Text>
+              <Text style={modalStyles.modalTitle}>{t('signup:modals.selectCountry')}</Text>
             </View>
             <TouchableOpacity onPress={onClose} style={modalStyles.modalCloseBtn}>
               <MaterialIcons name="close" size={20} color="#64748b" />

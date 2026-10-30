@@ -2,45 +2,72 @@ import React from 'react';
 import { StyleSheet, View, Text, ScrollView, TouchableOpacity, Linking } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
+import { useTranslation } from 'react-i18next';
 import { MaterialIcons } from '@expo/vector-icons';
+
+interface InfoRowItem {
+  icon: keyof typeof MaterialIcons.glyphMap;
+  label: string;
+  value: string;
+}
+
+interface FeatureItem {
+  icon: keyof typeof MaterialIcons.glyphMap;
+  label: string;
+  color: string;
+  bg: string;
+}
 
 export default function AboutScreen() {
   const router = useRouter();
+  const { t } = useTranslation(['common', 'support']);
+
+  const infoRows: InfoRowItem[] = [
+    { icon: 'business', label: t('support:about.labels.developer'), value: 'kavimaheslabs' },
+    { icon: 'code', label: t('support:about.labels.framework'), value: 'React Native (Expo SDK 57) & FastAPI' },
+    { icon: 'storage', label: t('support:about.labels.database'), value: 'PostgreSQL (Cloud) / SQLite (Local)' },
+    { icon: 'security', label: t('support:about.labels.auth'), value: 'JWT Bearer Tokens + Bcrypt' },
+    { icon: 'copyright', label: t('support:about.labels.license'), value: '© 2025-2026 kavimaheslabs. All rights reserved.' },
+  ];
+
+  const features: FeatureItem[] = [
+    { icon: 'shopping-cart', label: t('support:about.features.fastBilling'), color: '#004ac6', bg: '#eff6ff' },
+    { icon: 'inventory', label: t('support:about.features.inventoryTracking'), color: '#16a34a', bg: '#dcfce7' },
+    { icon: 'book', label: t('support:about.features.khataBook'), color: '#ea580c', bg: '#fff7ed' },
+    { icon: 'analytics', label: t('support:about.features.gstReports'), color: '#7c3aed', bg: '#faf5ff' },
+    { icon: 'print', label: t('support:about.features.thermalPrinting'), color: '#0891b2', bg: '#cffafe' },
+    { icon: 'wifi-off', label: t('support:about.features.offlineMode'), color: '#db2777', bg: '#fce7f3' },
+    { icon: 'group', label: t('support:about.features.multiUser'), color: '#d97706', bg: '#fef3c7' },
+    { icon: 'upload-file', label: t('support:about.features.bulkImport'), color: '#059669', bg: '#d1fae5' },
+  ];
+
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
       <View style={styles.header}>
         <TouchableOpacity onPress={() => router.back()} style={styles.backBtn} activeOpacity={0.7}>
           <MaterialIcons name="arrow-back" size={22} color="#0f172a" />
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>About SmartPOS</Text>
+        <Text style={styles.headerTitle}>{t('support:about.title')}</Text>
         <View style={{ width: 38 }} />
       </View>
 
       <ScrollView contentContainerStyle={styles.scroll} showsVerticalScrollIndicator={false}>
-        {/* Hero */}
         <View style={styles.heroCard}>
           <View style={styles.heroIconCircle}>
             <MaterialIcons name="point-of-sale" size={40} color="#004ac6" />
           </View>
           <Text style={styles.heroAppName}>SmartPOS</Text>
-          <Text style={styles.heroVersion}>Version 1.0.0</Text>
+          <Text style={styles.heroVersion}>{t('support:about.version')}</Text>
           <View style={styles.heroDivider} />
-          <Text style={styles.heroTagline}>Modern Point of Sale & Business Management</Text>
+          <Text style={styles.heroTagline}>{t('support:about.tagline')}</Text>
         </View>
 
-        {/* Developer Info */}
-        <Text style={styles.sectionTitle}>Developer Info</Text>
+        <Text style={styles.sectionTitle}>{t('support:about.developerInfo')}</Text>
         <View style={styles.infoCard}>
-          {[
-            { icon: 'business', label: 'Developer', value: 'kavimaheslabs' },
-            { icon: 'code', label: 'Framework', value: 'React Native (Expo SDK 54) & FastAPI' },
-            { icon: 'storage', label: 'Database', value: 'PostgreSQL (Cloud) / SQLite (Local)' },
-            { icon: 'security', label: 'Auth', value: 'JWT Bearer Tokens + Bcrypt' },
-            { icon: 'copyright', label: 'License', value: '© 2025 kavimaheslabs. All rights reserved.' },
-          ].map((row, i) => (
-            <View key={i} style={[styles.infoRow, i === 4 && { borderBottomWidth: 0 }]}>
+          {infoRows.map((row, i) => (
+            <View key={row.label} style={[styles.infoRow, i === infoRows.length - 1 && { borderBottomWidth: 0 }]}>
               <View style={styles.infoIconBox}>
-                <MaterialIcons name={row.icon as any} size={17} color="#004ac6" />
+                <MaterialIcons name={row.icon} size={17} color="#004ac6" />
               </View>
               <View style={styles.infoTextCol}>
                 <Text style={styles.infoLabel}>{row.label}</Text>
@@ -50,30 +77,19 @@ export default function AboutScreen() {
           ))}
         </View>
 
-        {/* Key Features */}
-        <Text style={styles.sectionTitle}>Key Features</Text>
+        <Text style={styles.sectionTitle}>{t('support:about.keyFeatures')}</Text>
         <View style={styles.featuresGrid}>
-          {[
-            { icon: 'shopping-cart', label: 'Fast POS Billing', color: '#004ac6', bg: '#eff6ff' },
-            { icon: 'inventory', label: 'Inventory Tracking', color: '#16a34a', bg: '#dcfce7' },
-            { icon: 'book', label: 'Khata Book', color: '#ea580c', bg: '#fff7ed' },
-            { icon: 'analytics', label: 'GST Reports', color: '#7c3aed', bg: '#faf5ff' },
-            { icon: 'print', label: 'Thermal Printing', color: '#0891b2', bg: '#cffafe' },
-            { icon: 'wifi-off', label: 'Offline Mode', color: '#db2777', bg: '#fce7f3' },
-            { icon: 'group', label: 'Multi-User Roles', color: '#d97706', bg: '#fef3c7' },
-            { icon: 'upload-file', label: 'Bulk Import', color: '#059669', bg: '#d1fae5' },
-          ].map((f, i) => (
-            <View key={i} style={styles.featureCard}>
+          {features.map((f) => (
+            <View key={f.label} style={styles.featureCard}>
               <View style={[styles.featureIconCircle, { backgroundColor: f.bg }]}>
-                <MaterialIcons name={f.icon as any} size={20} color={f.color} />
+                <MaterialIcons name={f.icon} size={20} color={f.color} />
               </View>
               <Text style={styles.featureLabel}>{f.label}</Text>
             </View>
           ))}
         </View>
 
-        {/* Contact */}
-        <Text style={styles.sectionTitle}>Get in Touch</Text>
+        <Text style={styles.sectionTitle}>{t('support:about.getInTouch')}</Text>
         <TouchableOpacity
           style={styles.emailBtn}
           onPress={() => Linking.openURL('mailto:zynocraftx@gmail.com')}
@@ -84,7 +100,7 @@ export default function AboutScreen() {
           <MaterialIcons name="open-in-new" size={16} color="#94a3b8" />
         </TouchableOpacity>
 
-        <Text style={styles.footer}>Made with ❤️ by kavimaheslabs</Text>
+        <Text style={styles.footer}>{t('support:about.madeWith')}</Text>
       </ScrollView>
     </SafeAreaView>
   );
@@ -148,9 +164,12 @@ const styles = StyleSheet.create({
   featureLabel: { fontSize: 12, fontWeight: '600', color: '#334155', textAlign: 'center' },
   emailBtn: {
     flexDirection: 'row', alignItems: 'center', gap: 12,
-    backgroundColor: '#ffffff', borderRadius: 14, padding: 16,
-    borderWidth: 1, borderColor: '#bfdbfe',
+    backgroundColor: '#ffffff', padding: 14, borderRadius: 14,
+    borderWidth: 1, borderColor: 'rgba(195,198,215,0.3)',
   },
-  emailBtnText: { flex: 1, fontSize: 14, fontWeight: '600', color: '#004ac6' },
-  footer: { textAlign: 'center', fontSize: 12, color: '#94a3b8', marginTop: 8 },
+  emailBtnText: { flex: 1, fontSize: 13.5, fontWeight: '600', color: '#004ac6' },
+  footer: {
+    textAlign: 'center', fontSize: 12, color: '#94a3b8',
+    marginTop: 8,
+  },
 });

@@ -14,23 +14,24 @@ import {
 } from 'react-native';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
+import { useTranslation } from 'react-i18next';
 import { MaterialIcons } from '@expo/vector-icons';
 import { useProfile } from '@/hooks/use-profile';
 
 export default function ShopEmailScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
+  const { t } = useTranslation(['common', 'shop']);
   const { user, saveProfile, toastMsg, showToast } = useProfile();
 
   const [email, setEmail] = useState(user?.email || '');
   const [saving, setSaving] = useState(false);
 
-
   const handleSave = async () => {
     Keyboard.dismiss();
     const cleanEmail = email.trim().toLowerCase();
     if (!cleanEmail) {
-      Alert.alert('Validation Error', 'Email address cannot be empty.');
+      Alert.alert(t('common:alerts.error'), t('shop:email.validationEmpty'));
       return;
     }
 
@@ -39,12 +40,12 @@ export default function ShopEmailScreen() {
       await saveProfile({
         email: cleanEmail,
       });
-      showToast('Contact email updated!');
+      showToast(t('shop:email.toastUpdated'));
       setTimeout(() => {
         router.back();
       }, 500);
     } catch {
-      Alert.alert('Update Failed', 'Could not update contact email.');
+      Alert.alert(t('common:alerts.error'), t('shop:email.updateFailed'));
     } finally {
       setSaving(false);
     }
@@ -63,7 +64,7 @@ export default function ShopEmailScreen() {
         <TouchableOpacity onPress={() => router.back()} style={styles.backBtn} activeOpacity={0.7}>
           <MaterialIcons name="arrow-back" size={22} color="#0f172a" />
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>Contact Email</Text>
+        <Text style={styles.headerTitle}>{t('shop:email.title')}</Text>
         <TouchableOpacity
           onPress={handleSave}
           disabled={saving}
@@ -73,7 +74,7 @@ export default function ShopEmailScreen() {
           {saving ? (
             <ActivityIndicator size="small" color="#004ac6" />
           ) : (
-            <Text style={styles.headerSaveText}>Save</Text>
+            <Text style={styles.headerSaveText}>{t('common:actions.save')}</Text>
           )}
         </TouchableOpacity>
       </View>
@@ -89,23 +90,23 @@ export default function ShopEmailScreen() {
                 <MaterialIcons name="alternate-email" size={26} color="#0284c7" />
               </View>
               <View style={styles.bannerTextCol}>
-                <Text style={styles.bannerTitle}>Official Store Email</Text>
+                <Text style={styles.bannerTitle}>{t('shop:email.bannerTitle')}</Text>
                 <Text style={styles.bannerSub}>
-                  Used for monthly sales summaries, billing receipts, and account notifications.
+                  {t('shop:email.bannerSub')}
                 </Text>
               </View>
             </View>
 
-            <Text style={styles.sectionHeading}>Store Email Address</Text>
+            <Text style={styles.sectionHeading}>{t('shop:email.sectionHeading')}</Text>
             <View style={styles.card}>
               <View style={styles.fieldLabelRow}>
                 <MaterialIcons name="email" size={16} color="#004ac6" />
-                <Text style={styles.fieldLabel}>Email Address</Text>
+                <Text style={styles.fieldLabel}>{t('shop:email.fieldLabel')}</Text>
               </View>
               <View style={styles.inputBox}>
                 <TextInput
                   style={styles.textInput}
-                  placeholder="e.g. store@business.com"
+                  placeholder={t('shop:email.placeholder')}
                   placeholderTextColor="#94a3b8"
                   value={email}
                   onChangeText={setEmail}
@@ -115,18 +116,18 @@ export default function ShopEmailScreen() {
                 />
               </View>
               <Text style={styles.fieldHint}>
-                Invoices and end-of-day summary reports will be addressed here.
+                {t('shop:email.fieldHint')}
               </Text>
             </View>
 
             <View style={styles.infoCard}>
               <View style={styles.infoRow}>
                 <MaterialIcons name="mark-email-read" size={18} color="#004ac6" />
-                <Text style={styles.infoRowText}>Digital PDF invoice copies & receipts</Text>
+                <Text style={styles.infoRowText}>{t('shop:email.digitalCopies')}</Text>
               </View>
               <View style={[styles.infoRow, { borderBottomWidth: 0 }]}>
                 <MaterialIcons name="analytics" size={18} color="#004ac6" />
-                <Text style={styles.infoRowText}>Daily sales report dispatching</Text>
+                <Text style={styles.infoRowText}>{t('shop:email.dailyReports')}</Text>
               </View>
             </View>
           </View>
@@ -143,7 +144,7 @@ export default function ShopEmailScreen() {
               ) : (
                 <>
                   <MaterialIcons name="save" size={20} color="#ffffff" />
-                  <Text style={styles.saveButtonText}>Save Email Address</Text>
+                  <Text style={styles.saveButtonText}>{t('shop:email.saveButton')}</Text>
                 </>
               )}
             </TouchableOpacity>
@@ -289,7 +290,7 @@ const styles = StyleSheet.create({
     borderColor: '#cbd5e1',
     borderRadius: 10,
     paddingHorizontal: 14,
-    paddingVertical: 12,
+    paddingVertical: 10,
   },
   textInput: {
     fontSize: 16,
@@ -299,8 +300,8 @@ const styles = StyleSheet.create({
   },
   fieldHint: {
     fontSize: 12,
-    color: '#94a3b8',
-    marginTop: 6,
+    color: '#64748b',
+    marginTop: 8,
   },
   infoCard: {
     backgroundColor: '#ffffff',

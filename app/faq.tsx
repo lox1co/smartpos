@@ -2,31 +2,34 @@ import React from 'react';
 import { StyleSheet, View, Text, ScrollView, TouchableOpacity } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
+import { useTranslation } from 'react-i18next';
 import { MaterialIcons } from '@expo/vector-icons';
 
-const FAQ_ITEMS = [
-  { q: 'How do I add a new product?', a: 'Go to the Products tab and tap the + button in the top right corner. Fill in the product name, SKU, price, cost price, stock, category and tax rate, then save.' },
-  { q: 'How does offline billing work?', a: 'If your internet drops during a sale, SmartPOS automatically saves the bill locally with an OFFLINE invoice number. Once you reconnect, it syncs all pending sales to the server automatically.' },
-  { q: 'What is the Store ID / Join Code?', a: 'Every store gets a unique alphanumeric code (e.g. TGMAEX). Staff can enter this code during signup to join your store as a cashier or manager.' },
-  { q: 'How do I record a credit (Khata) sale?', a: 'During billing, select "Khata / Credit" as the payment method, then enter the customer name. The outstanding amount is automatically added to that customer\'s credit balance.' },
-  { q: 'How do I print a receipt?', a: 'After completing a checkout, the receipt preview appears. Tap "Print Receipt" to send it to a connected Bluetooth or network thermal printer (58mm/80mm). You can also export as PDF.' },
-  { q: 'How do I import products in bulk?', a: 'Go to Products, tap the import icon, download the Excel template, fill it in with your product data, then upload it back. The system imports all valid rows automatically.' },
-  { q: 'How can I scan barcodes into the Excel template quickly?', a: 'You can leave the SKU column blank for auto-generated codes, or use a free app like "Barcode to PC" to turn your phone into a wireless scanner that types barcodes straight into Excel on your laptop.' },
-  { q: 'Can multiple staff use the same store?', a: 'Yes. Share your Store ID with staff members. They sign up with the Store ID and are assigned a cashier or manager role. Each user logs in with their own credentials.' },
-  { q: 'How does GST calculation work?', a: 'Each product has a tax rate %. At checkout the tax is split into CGST & SGST (50/50) for intra-state sales, which appears on receipts and GST reports.' },
-  { q: 'How do I restock a product?', a: 'Go to the Inventory tab, find the product, tap the + restock button, then select a preset quantity (+5, +10, +25, +50, +100). Stock is updated immediately.' },
-  { q: 'What should I do if the app shows wrong data?', a: 'Try logging out and back in. If the issue persists, contact our support team at zynocraftx@gmail.com with a description of the problem.' },
-];
+const FAQ_KEYS = [
+  { q: 'support:faq.items.addProductQ', a: 'support:faq.items.addProductA' },
+  { q: 'support:faq.items.offlineBillingQ', a: 'support:faq.items.offlineBillingA' },
+  { q: 'support:faq.items.storeIdQ', a: 'support:faq.items.storeIdA' },
+  { q: 'support:faq.items.khataQ', a: 'support:faq.items.khataA' },
+  { q: 'support:faq.items.printQ', a: 'support:faq.items.printA' },
+  { q: 'support:faq.items.bulkImportQ', a: 'support:faq.items.bulkImportA' },
+  { q: 'support:faq.items.barcodesQ', a: 'support:faq.items.barcodesA' },
+  { q: 'support:faq.items.multiStaffQ', a: 'support:faq.items.multiStaffA' },
+  { q: 'support:faq.items.gstCalcQ', a: 'support:faq.items.gstCalcA' },
+  { q: 'support:faq.items.restockQ', a: 'support:faq.items.restockA' },
+  { q: 'support:faq.items.wrongDataQ', a: 'support:faq.items.wrongDataA' },
+] as const;
 
 export default function FaqScreen() {
   const router = useRouter();
+  const { t } = useTranslation(['common', 'support']);
+
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
       <View style={styles.header}>
         <TouchableOpacity onPress={() => router.back()} style={styles.backBtn} activeOpacity={0.7}>
           <MaterialIcons name="arrow-back" size={22} color="#0f172a" />
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>FAQ & Help Center</Text>
+        <Text style={styles.headerTitle}>{t('support:faq.title')}</Text>
         <View style={{ width: 38 }} />
       </View>
 
@@ -35,17 +38,21 @@ export default function FaqScreen() {
           <View style={styles.heroIconCircle}>
             <MaterialIcons name="help-outline" size={30} color="#16a34a" />
           </View>
-          <Text style={styles.heroText}>Find answers to the most common questions about SmartPOS.</Text>
+          <Text style={styles.heroText}>{t('support:faq.banner')}</Text>
         </View>
 
-        {FAQ_ITEMS.map((item, i) => (
-          <View key={i} style={styles.faqItem}>
+        {FAQ_KEYS.map((item) => (
+          <View key={item.q} style={styles.faqItem}>
             <View style={styles.faqQuestion}>
               <View style={styles.qBadge}><Text style={styles.qBadgeText}>Q</Text></View>
-              <Text style={styles.questionText}>{item.q}</Text>
+              <Text style={styles.questionText}>
+                {t(item.q)}
+              </Text>
             </View>
             <View style={styles.faqAnswer}>
-              <Text style={styles.answerText}>{item.a}</Text>
+              <Text style={styles.answerText}>
+                {t(item.a)}
+              </Text>
             </View>
           </View>
         ))}
@@ -56,7 +63,7 @@ export default function FaqScreen() {
           activeOpacity={0.8}
         >
           <MaterialIcons name="headset-mic" size={18} color="#ea580c" />
-          <Text style={styles.contactBtnText}>Still have questions? Contact Support</Text>
+          <Text style={styles.contactBtnText}>{t('support:faq.stillQuestions')}</Text>
           <MaterialIcons name="arrow-forward" size={16} color="#ea580c" />
         </TouchableOpacity>
       </ScrollView>

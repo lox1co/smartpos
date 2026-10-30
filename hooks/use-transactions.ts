@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback, useMemo } from 'react';
 import { useSessionStore } from '@/stores/session-store';
+import { useDataEventStore } from '@/stores/data-event-store';
 import {
   listTransactions,
   getTransactionItems,
@@ -58,6 +59,7 @@ export const useTransactionItems = (transactionId?: string, visible: boolean = f
 export const useTransactionHistory = (initialInvoice?: string) => {
   const storeId = useSessionStore((state) => state.currentUser?.storeId ?? 'DEMO-1001');
   const currencySymbol = useSessionStore((state) => state.currentUser?.currencySymbol ?? '$');
+  const transactionsVersion = useDataEventStore((state) => state.transactionsVersion);
 
   const [transactions, setTransactions] = useState<TransactionSelect[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -99,7 +101,7 @@ export const useTransactionHistory = (initialInvoice?: string) => {
     return () => {
       isMounted = false;
     };
-  }, [storeId, initialInvoice]);
+  }, [storeId, initialInvoice, transactionsVersion]);
 
   const filteredTransactions = useMemo(() => {
     return transactions.filter((t) => {
@@ -108,10 +110,11 @@ export const useTransactionHistory = (initialInvoice?: string) => {
       }
       if (searchQuery.trim()) {
         const q = searchQuery.toLowerCase();
-        const matchInvoice = t.invoiceNumber.toLowerCase().includes(q);
-        const matchCustomer = (t.customerName || '').toLowerCase().includes(q);
-        const matchPhone = (t.customerPhone || '').includes(q);
-        if (!matchInvoice && !matchCustomer && !matchPhone) return false;
+        return (
+          t.invoiceNumber.toLowerCase().includes(q) ||
+          (t.customerName && t.customerName.toLowerCase().includes(q)) ||
+          (t.customerPhone && t.customerPhone.includes(q))
+        );
       }
       return true;
     });
@@ -122,12 +125,12 @@ export const useTransactionHistory = (initialInvoice?: string) => {
     rawTransactions: transactions,
     isLoading,
     searchQuery,
-    selectedMethod,
-    selectedTx,
-    currencySymbol,
     setSearchQuery,
+    selectedMethod,
     setSelectedMethod,
+    selectedTx,
     setSelectedTx,
+    currencySymbol,
     refreshTransactions: loadData,
   };
 };

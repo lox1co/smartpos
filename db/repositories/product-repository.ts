@@ -14,12 +14,29 @@ export const getProductBySku = async (
   sku: string
 ): Promise<ProductSelect | undefined> => {
   const cleanSku = sku.trim().toUpperCase();
-  const result = await db
+  const direct = await db
     .select()
     .from(products)
     .where(and(eq(products.storeId, storeId), eq(products.sku, cleanSku), eq(products.isActive, true)))
     .limit(1);
-  return result[0];
+  if (direct[0]) return direct[0];
+
+  const noZeros = cleanSku.replace(/^0+/, '');
+  if (noZeros && noZeros !== cleanSku) {
+    const fallback = await db
+      .select()
+      .from(products)
+      .where(and(eq(products.storeId, storeId), eq(products.sku, noZeros), eq(products.isActive, true)))
+      .limit(1);
+    if (fallback[0]) return fallback[0];
+  }
+
+  const byId = await db
+    .select()
+    .from(products)
+    .where(and(eq(products.storeId, storeId), eq(products.id, sku.trim()), eq(products.isActive, true)))
+    .limit(1);
+  return byId[0];
 };
 
 export const listProducts = async (

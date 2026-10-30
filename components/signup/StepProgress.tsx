@@ -1,5 +1,6 @@
 import React from 'react';
 import { View, Text } from 'react-native';
+import { useTranslation } from 'react-i18next';
 import { MaterialIcons } from '@expo/vector-icons';
 import { stepStyles } from './step-card.styles';
 
@@ -8,12 +9,14 @@ interface StepProgressProps {
 }
 
 export const StepProgress: React.FC<StepProgressProps> = ({ currentStep }) => {
+  const { t } = useTranslation(['common', 'signup']);
+
   const steps = [
-    { num: 1, label: 'Account\nType' },
-    { num: 2, label: 'Shop\nInformation' },
-    { num: 3, label: 'Owner\nDetails' },
-    { num: 4, label: 'Password\nSetup' },
-    { num: 5, label: 'Complete' },
+    { num: 1, label: t('signup:steps.accountType') },
+    { num: 2, label: t('signup:steps.shopInfo') },
+    { num: 3, label: t('signup:steps.ownerDetails') },
+    { num: 4, label: t('signup:steps.passwordSetup') },
+    { num: 5, label: t('signup:steps.complete') },
   ];
 
   return (

@@ -12,6 +12,7 @@ import {
 } from 'react-native';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
+import { useTranslation } from 'react-i18next';
 import { Image } from 'expo-image';
 import { MaterialIcons } from '@expo/vector-icons';
 import * as ImagePicker from 'expo-image-picker';
@@ -36,6 +37,7 @@ const PRESET_AVATARS = [
 export default function StoreInfoScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
+  const { t } = useTranslation(['common', 'shop']);
   const { user, saveProfile, toastMsg, showToast } = useProfile();
 
   const [shopName, setShopName] = useState(user?.shopName || '');
@@ -46,14 +48,13 @@ export default function StoreInfoScreen() {
   const [saving, setSaving] = useState(false);
   const [copiedStoreId, setCopiedStoreId] = useState(false);
 
-
   const handleCopyStoreId = () => {
     if (!storeId) return;
     if (Platform.OS === 'web' && typeof navigator !== 'undefined' && navigator.clipboard) {
       void navigator.clipboard.writeText(storeId);
     }
     setCopiedStoreId(true);
-    showToast('Store ID copied to clipboard');
+    showToast(t('shop:storeInfo.toastCopied'));
     setTimeout(() => setCopiedStoreId(false), 2500);
   };
 
@@ -62,7 +63,10 @@ export default function StoreInfoScreen() {
       if (Platform.OS !== 'web') {
         const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
         if (status !== 'granted') {
-          Alert.alert('Permission Denied', 'Permission to access photo gallery is required.');
+          Alert.alert(
+            t('shop:storeInfo.permissionDeniedTitle'),
+            t('shop:storeInfo.permissionDeniedMessage')
+          );
           return;
         }
       }
@@ -89,11 +93,17 @@ export default function StoreInfoScreen() {
 
   const handleSave = async () => {
     if (!shopName.trim()) {
-      Alert.alert('Validation Error', 'Shop Name cannot be empty.');
+      Alert.alert(
+        t('common:alerts.error'),
+        t('shop:storeInfo.validationEmptyShop')
+      );
       return;
     }
     if (!userName.trim()) {
-      Alert.alert('Validation Error', 'Owner / Merchant name cannot be empty.');
+      Alert.alert(
+        t('common:alerts.error'),
+        t('shop:storeInfo.validationEmptyOwner')
+      );
       return;
     }
 
@@ -105,12 +115,15 @@ export default function StoreInfoScreen() {
         image: selectedAvatar || '',
       });
 
-      showToast('Profile updated successfully!');
+      showToast(t('shop:storeInfo.toastUpdated'));
       setTimeout(() => {
         router.back();
       }, 400);
     } catch {
-      Alert.alert('Save Failed', 'Could not update profile. Please try again.');
+      Alert.alert(
+        t('common:alerts.error'),
+        t('shop:storeInfo.saveFailed')
+      );
     } finally {
       setSaving(false);
     }
@@ -129,7 +142,7 @@ export default function StoreInfoScreen() {
         <TouchableOpacity onPress={() => router.back()} style={styles.backBtn} activeOpacity={0.7}>
           <MaterialIcons name="arrow-back" size={22} color="#0f172a" />
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>Edit Profile</Text>
+        <Text style={styles.headerTitle}>{t('shop:storeInfo.title')}</Text>
         <View style={{ width: 40 }} />
       </View>
 
@@ -162,14 +175,14 @@ export default function StoreInfoScreen() {
               </TouchableOpacity>
             </View>
 
-            <Text style={styles.avatarHeroTitle}>{shopName || 'Store Profile'}</Text>
-            <Text style={styles.avatarHeroSub}>{userName || 'Owner Name'}</Text>
+            <Text style={styles.avatarHeroTitle}>{shopName || t('shop:storeInfo.storeProfile')}</Text>
+            <Text style={styles.avatarHeroSub}>{userName || t('shop:storeInfo.ownerName')}</Text>
           </View>
 
           <View style={styles.sectionCard}>
             <View style={styles.sectionHeaderRow}>
               <MaterialIcons name="palette" size={18} color="#004ac6" />
-              <Text style={styles.sectionHeaderTitle}>Choose Avatar or Upload Photo</Text>
+              <Text style={styles.sectionHeaderTitle}>{t('shop:storeInfo.chooseAvatar')}</Text>
             </View>
 
             <View style={styles.presetGrid}>
@@ -186,7 +199,7 @@ export default function StoreInfoScreen() {
                     {userName ? userName.trim().substring(0, 2).toUpperCase() : 'SP'}
                   </Text>
                 </View>
-                <Text style={styles.presetLabel} numberOfLines={1}>Initials</Text>
+                <Text style={styles.presetLabel} numberOfLines={1}>{t('shop:storeInfo.initials')}</Text>
                 {selectedAvatar === null && (
                   <View style={styles.presetCheckBadge}>
                     <MaterialIcons name="check" size={10} color="#ffffff" />
@@ -226,21 +239,21 @@ export default function StoreInfoScreen() {
               activeOpacity={0.8}
             >
               <MaterialIcons name="add-photo-alternate" size={18} color="#004ac6" />
-              <Text style={styles.customUploadText}>Upload Photo from Gallery</Text>
+              <Text style={styles.customUploadText}>{t('shop:storeInfo.uploadPhoto')}</Text>
             </TouchableOpacity>
           </View>
 
           <View style={styles.sectionCard}>
             <View style={styles.sectionHeaderRow}>
               <MaterialIcons name="badge" size={18} color="#004ac6" />
-              <Text style={styles.sectionHeaderTitle}>Basic Information</Text>
+              <Text style={styles.sectionHeaderTitle}>{t('shop:storeInfo.basicInfo')}</Text>
             </View>
 
             <View style={styles.fieldGroup}>
-              <Text style={styles.fieldLabel}>Shop / Store Name *</Text>
+              <Text style={styles.fieldLabel}>{t('shop:storeInfo.shopNameLabel')}</Text>
               <TextInput
                 style={styles.textInput}
-                placeholder="e.g. Metro Supermarket"
+                placeholder={t('shop:storeInfo.shopNamePlaceholder')}
                 placeholderTextColor="#94a3b8"
                 value={shopName}
                 onChangeText={setShopName}
@@ -249,10 +262,10 @@ export default function StoreInfoScreen() {
             </View>
 
             <View style={styles.fieldGroup}>
-              <Text style={styles.fieldLabel}>Owner / Merchant Full Name *</Text>
+              <Text style={styles.fieldLabel}>{t('shop:storeInfo.ownerNameLabel')}</Text>
               <TextInput
                 style={styles.textInput}
-                placeholder="e.g. John Doe"
+                placeholder={t('shop:storeInfo.ownerNamePlaceholder')}
                 placeholderTextColor="#94a3b8"
                 value={userName}
                 onChangeText={setUserName}
@@ -261,7 +274,7 @@ export default function StoreInfoScreen() {
             </View>
 
             <View style={[styles.fieldGroup, { marginBottom: 0 }]}>
-              <Text style={styles.fieldLabel}>Store ID (Staff Join Code)</Text>
+              <Text style={styles.fieldLabel}>{t('shop:storeInfo.storeIdLabel')}</Text>
               <View style={styles.storeIdRow}>
                 <Text style={styles.storeIdText}>{storeId || '—'}</Text>
                 <TouchableOpacity
@@ -275,12 +288,12 @@ export default function StoreInfoScreen() {
                     color={copiedStoreId ? '#15803d' : '#004ac6'}
                   />
                   <Text style={[styles.copyCodeBtnText, copiedStoreId && { color: '#15803d' }]}>
-                    {copiedStoreId ? 'Copied' : 'Copy'}
+                    {copiedStoreId ? t('shop:storeInfo.copied') : t('shop:storeInfo.copy')}
                   </Text>
                 </TouchableOpacity>
               </View>
               <Text style={styles.fieldHint}>
-                Cashiers and store staff use this ID during signup to join this store.
+                {t('shop:storeInfo.storeIdHint')}
               </Text>
             </View>
           </View>
@@ -299,7 +312,7 @@ export default function StoreInfoScreen() {
           ) : (
             <>
               <MaterialIcons name="check" size={20} color="#ffffff" />
-              <Text style={styles.saveBtnText}>Save Profile</Text>
+              <Text style={styles.saveBtnText}>{t('shop:storeInfo.saveProfile')}</Text>
             </>
           )}
         </TouchableOpacity>

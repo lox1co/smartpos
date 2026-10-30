@@ -14,17 +14,18 @@ import {
 } from 'react-native';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
+import { useTranslation } from 'react-i18next';
 import { MaterialIcons } from '@expo/vector-icons';
 import { useProfile } from '@/hooks/use-profile';
 
 export default function ShopPhoneScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
+  const { t } = useTranslation(['common', 'shop']);
   const { user, saveProfile, toastMsg, showToast } = useProfile();
 
   const [phone, setPhone] = useState(user?.phone || '');
   const [saving, setSaving] = useState(false);
-
 
   const handleSave = async () => {
     Keyboard.dismiss();
@@ -33,12 +34,12 @@ export default function ShopPhoneScreen() {
       await saveProfile({
         phone: phone.trim(),
       });
-      showToast('Phone number updated!');
+      showToast(t('shop:phone.toastUpdated'));
       setTimeout(() => {
         router.back();
       }, 500);
     } catch {
-      Alert.alert('Update Failed', 'Could not update phone number.');
+      Alert.alert(t('common:alerts.error'), t('shop:phone.updateFailed'));
     } finally {
       setSaving(false);
     }
@@ -57,7 +58,7 @@ export default function ShopPhoneScreen() {
         <TouchableOpacity onPress={() => router.back()} style={styles.backBtn} activeOpacity={0.7}>
           <MaterialIcons name="arrow-back" size={22} color="#0f172a" />
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>Registered Phone</Text>
+        <Text style={styles.headerTitle}>{t('shop:phone.title')}</Text>
         <TouchableOpacity
           onPress={handleSave}
           disabled={saving}
@@ -67,7 +68,7 @@ export default function ShopPhoneScreen() {
           {saving ? (
             <ActivityIndicator size="small" color="#004ac6" />
           ) : (
-            <Text style={styles.headerSaveText}>Save</Text>
+            <Text style={styles.headerSaveText}>{t('common:actions.save')}</Text>
           )}
         </TouchableOpacity>
       </View>
@@ -83,23 +84,23 @@ export default function ShopPhoneScreen() {
                 <MaterialIcons name="phone-android" size={26} color="#0d9488" />
               </View>
               <View style={styles.bannerTextCol}>
-                <Text style={styles.bannerTitle}>Store Contact Number</Text>
+                <Text style={styles.bannerTitle}>{t('shop:phone.bannerTitle')}</Text>
                 <Text style={styles.bannerSub}>
-                  Customers and staff use this number for billing inquiries and store communications.
+                  {t('shop:phone.bannerSub')}
                 </Text>
               </View>
             </View>
 
-            <Text style={styles.sectionHeading}>Contact Phone Number</Text>
+            <Text style={styles.sectionHeading}>{t('shop:phone.sectionHeading')}</Text>
             <View style={styles.card}>
               <View style={styles.fieldLabelRow}>
                 <MaterialIcons name="phone" size={16} color="#004ac6" />
-                <Text style={styles.fieldLabel}>Phone / Mobile Number</Text>
+                <Text style={styles.fieldLabel}>{t('shop:phone.fieldLabel')}</Text>
               </View>
               <View style={styles.inputBox}>
                 <TextInput
                   style={styles.textInput}
-                  placeholder="e.g. +91 9876543210"
+                  placeholder={t('shop:phone.placeholder')}
                   placeholderTextColor="#94a3b8"
                   value={phone}
                   onChangeText={setPhone}
@@ -107,18 +108,18 @@ export default function ShopPhoneScreen() {
                 />
               </View>
               <Text style={styles.fieldHint}>
-                Included in receipt headers and WhatsApp order shares.
+                {t('shop:phone.fieldHint')}
               </Text>
             </View>
 
             <View style={styles.infoCard}>
               <View style={styles.infoRow}>
                 <MaterialIcons name="receipt" size={18} color="#004ac6" />
-                <Text style={styles.infoRowText}>Printed at the top of customer receipts</Text>
+                <Text style={styles.infoRowText}>{t('shop:phone.printedReceipt')}</Text>
               </View>
               <View style={[styles.infoRow, { borderBottomWidth: 0 }]}>
                 <MaterialIcons name="sms" size={18} color="#004ac6" />
-                <Text style={styles.infoRowText}>Enabled for WhatsApp bill dispatching</Text>
+                <Text style={styles.infoRowText}>{t('shop:phone.enabledWhatsapp')}</Text>
               </View>
             </View>
           </View>
@@ -135,7 +136,7 @@ export default function ShopPhoneScreen() {
               ) : (
                 <>
                   <MaterialIcons name="save" size={20} color="#ffffff" />
-                  <Text style={styles.saveButtonText}>Save Phone Number</Text>
+                  <Text style={styles.saveButtonText}>{t('shop:phone.saveButton')}</Text>
                 </>
               )}
             </TouchableOpacity>
@@ -222,7 +223,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     backgroundColor: '#f0fdfa',
     borderWidth: 1,
-    borderColor: '#99f6e4',
+    borderColor: '#ccfbf1',
     borderRadius: 14,
     padding: 14,
     gap: 12,
@@ -242,11 +243,11 @@ const styles = StyleSheet.create({
   bannerTitle: {
     fontSize: 14,
     fontWeight: '700',
-    color: '#115e59',
+    color: '#134e4a',
   },
   bannerSub: {
     fontSize: 12,
-    color: '#0f766e',
+    color: '#115e59',
     marginTop: 2,
     lineHeight: 16,
   },
@@ -281,7 +282,7 @@ const styles = StyleSheet.create({
     borderColor: '#cbd5e1',
     borderRadius: 10,
     paddingHorizontal: 14,
-    paddingVertical: 12,
+    paddingVertical: 10,
   },
   textInput: {
     fontSize: 16,
@@ -291,8 +292,8 @@ const styles = StyleSheet.create({
   },
   fieldHint: {
     fontSize: 12,
-    color: '#94a3b8',
-    marginTop: 6,
+    color: '#64748b',
+    marginTop: 8,
   },
   infoCard: {
     backgroundColor: '#ffffff',

@@ -8,6 +8,7 @@ import {
   TouchableWithoutFeedback,
   StyleSheet,
 } from 'react-native';
+import { useTranslation } from 'react-i18next';
 import { ProductSelect } from '@/db/schema/products';
 import { formatCents } from '@/utils/money';
 
@@ -35,6 +36,7 @@ const WeightPickerContent = ({
   onClose,
   onConfirm,
 }: WeightPickerContentProps) => {
+  const { t } = useTranslation(['common', 'billing']);
   const [val, setVal] = useState(
     initialQuantity > 0 ? String(initialQuantity) : product.unit === 'g' ? '250' : '0.5'
   );
@@ -56,7 +58,10 @@ const WeightPickerContent = ({
             <View style={styles.container}>
               <Text style={styles.title}>{product.name}</Text>
               <Text style={styles.subtitle}>
-                Price: {formatCents(product.priceCents, currencySymbol)} / {product.unit}
+                {t('billing:weight.pricePerUnit', {
+                  price: formatCents(product.priceCents, currencySymbol),
+                  unit: product.unit,
+                })}
               </Text>
 
               <View style={styles.inputWrap}>
@@ -71,15 +76,17 @@ const WeightPickerContent = ({
               </View>
 
               <Text style={styles.estimatedText}>
-                Estimated line total: {formatCents(estimatedCents, currencySymbol)}
+                {t('billing:weight.estimatedLineTotal', {
+                  amount: formatCents(estimatedCents, currencySymbol),
+                })}
               </Text>
 
               <View style={styles.btnRow}>
                 <TouchableOpacity style={styles.cancelBtn} onPress={onClose}>
-                  <Text style={styles.cancelBtnText}>Cancel</Text>
+                  <Text style={styles.cancelBtnText}>{t('common:actions.cancel')}</Text>
                 </TouchableOpacity>
                 <TouchableOpacity style={styles.confirmBtn} onPress={handleSave}>
-                  <Text style={styles.confirmBtnText}>Add to Cart</Text>
+                  <Text style={styles.confirmBtnText}>{t('billing:weight.addToCart')}</Text>
                 </TouchableOpacity>
               </View>
             </View>

@@ -13,6 +13,7 @@ import {
 } from 'react-native';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
+import { useTranslation } from 'react-i18next';
 import { MaterialIcons } from '@expo/vector-icons';
 import { SHOP_CATEGORIES, getShopCategoryLabel } from '@/constants/config';
 import { useProfile } from '@/hooks/use-profile';
@@ -21,6 +22,7 @@ import { shopStyles } from '@/components/shop/shop-settings.styles';
 export default function ShopCategoryScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
+  const { t } = useTranslation(['common', 'shop']);
   const { user, saveProfile, toastMsg, showToast } = useProfile();
 
   const [selectedCategory, setSelectedCategory] = useState(() => {
@@ -69,7 +71,7 @@ export default function ShopCategoryScreen() {
       : selectedCategory.trim();
 
     if (!finalCategory) {
-      Alert.alert('Category Required', 'Please select or enter a shop category.');
+      Alert.alert(t('common:alerts.error'), t('shop:category.validationRequired'));
       return;
     }
 
@@ -78,12 +80,12 @@ export default function ShopCategoryScreen() {
       await saveProfile({
         shopCategory: finalCategory,
       });
-      showToast('Shop category updated!');
+      showToast(t('shop:category.toastUpdated'));
       setTimeout(() => {
         router.back();
       }, 500);
     } catch {
-      Alert.alert('Update Failed', 'Could not update category.');
+      Alert.alert(t('common:alerts.error'), t('shop:category.updateFailed'));
     } finally {
       setSaving(false);
     }
@@ -102,7 +104,7 @@ export default function ShopCategoryScreen() {
         <TouchableOpacity onPress={() => router.back()} style={shopStyles.backBtn} activeOpacity={0.7}>
           <MaterialIcons name="arrow-back" size={22} color="#0f172a" />
         </TouchableOpacity>
-        <Text style={shopStyles.headerTitle}>Shop Category</Text>
+        <Text style={shopStyles.headerTitle}>{t('shop:category.title')}</Text>
         <TouchableOpacity
           onPress={handleSave}
           disabled={saving}
@@ -112,7 +114,7 @@ export default function ShopCategoryScreen() {
           {saving ? (
             <ActivityIndicator size="small" color="#004ac6" />
           ) : (
-            <Text style={shopStyles.headerSaveText}>Save</Text>
+            <Text style={shopStyles.headerSaveText}>{t('common:actions.save')}</Text>
           )}
         </TouchableOpacity>
       </View>
@@ -128,7 +130,7 @@ export default function ShopCategoryScreen() {
                 <MaterialIcons name="storefront" size={22} color="#004ac6" />
               </View>
               <View style={shopStyles.activeBannerText}>
-                <Text style={shopStyles.activeBannerLabel}>Current Category</Text>
+                <Text style={shopStyles.activeBannerLabel}>{t('shop:category.currentCategory')}</Text>
                 <Text style={shopStyles.activeBannerValue} numberOfLines={1}>
                   {isCustomMode && customCategory.trim()
                     ? customCategory.trim()
@@ -137,7 +139,7 @@ export default function ShopCategoryScreen() {
               </View>
             </View>
 
-            <Text style={shopStyles.sectionHeading}>Select Business Type</Text>
+            <Text style={shopStyles.sectionHeading}>{t('shop:category.selectBusinessType')}</Text>
 
             <View style={shopStyles.categoryGrid}>
               {SHOP_CATEGORIES.map((cat) => {
@@ -200,11 +202,11 @@ export default function ShopCategoryScreen() {
                   size={18}
                   color={isCustomMode ? '#004ac6' : '#64748b'}
                 />
-                <Text style={shopStyles.customCardTitle}>Custom Business Category</Text>
+                <Text style={shopStyles.customCardTitle}>{t('shop:category.customTitle')}</Text>
               </View>
               <TextInput
                 style={shopStyles.textInput}
-                placeholder="e.g. Specialty Organic Bakery"
+                placeholder={t('shop:category.customPlaceholder')}
                 placeholderTextColor="#94a3b8"
                 value={customCategory}
                 onChangeText={(text) => {
@@ -234,7 +236,7 @@ export default function ShopCategoryScreen() {
               ) : (
                 <>
                   <MaterialIcons name="save" size={20} color="#ffffff" />
-                  <Text style={shopStyles.saveButtonText}>Save Category</Text>
+                  <Text style={shopStyles.saveButtonText}>{t('shop:category.saveButton')}</Text>
                 </>
               )}
             </TouchableOpacity>

@@ -11,6 +11,7 @@ import {
   Keyboard,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { useTranslation } from 'react-i18next';
 import { MaterialIcons } from '@expo/vector-icons';
 import Svg, { Path, Circle, Defs, LinearGradient, Stop } from 'react-native-svg';
 import {
@@ -29,6 +30,7 @@ import { useSignup } from '@/hooks/use-signup';
 
 export default function SignupScreen() {
   const scrollViewRef = useRef<ScrollView>(null);
+  const { t } = useTranslation(['common', 'signup']);
   const {
     router,
     currentStep,
@@ -127,7 +129,7 @@ export default function SignupScreen() {
                 <TouchableOpacity
                   style={styles.backArrowButton}
                   onPress={handleBack}
-                  accessibilityLabel="Go back"
+                  accessibilityLabel={t('common:actions.back')}
                 >
                   <MaterialIcons name="chevron-left" size={32} color={THEME.textPrimary} />
                 </TouchableOpacity>
@@ -150,7 +152,7 @@ export default function SignupScreen() {
                     </Svg>
                     <Text style={styles.logoText}>Smart<Text style={{ color: '#1e293b', fontWeight: '800' }}>POS</Text></Text>
                   </View>
-                  <Text style={styles.brandPrompt}>Create your account to get started</Text>
+                  <Text style={styles.brandPrompt}>{t('signup:brandPrompt')}</Text>
                 </View>
               )}
             </View>
@@ -265,7 +267,7 @@ export default function SignupScreen() {
                     ) : (
                       <View style={styles.btnContent}>
                         <Text style={styles.primaryButtonText}>
-                          {currentStep === 4 ? 'Submit Details' : 'Continue'}
+                          {currentStep === 4 ? t('signup:buttons.submit') : t('signup:buttons.continue')}
                         </Text>
                         <MaterialIcons name="arrow-forward" size={18} color="#ffffff" style={{ marginLeft: 6 }} />
                       </View>
@@ -278,7 +280,7 @@ export default function SignupScreen() {
                     activeOpacity={0.8}
                   >
                     <View style={styles.btnContent}>
-                      <Text style={styles.primaryButtonText}>Go to Sign In</Text>
+                      <Text style={styles.primaryButtonText}>{t('signup:complete.goToSignIn')}</Text>
                       <MaterialIcons name="login" size={18} color="#ffffff" style={{ marginLeft: 6 }} />
                     </View>
                   </TouchableOpacity>

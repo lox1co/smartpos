@@ -1,5 +1,6 @@
 import React from 'react';
 import { View, Text, TextInput, TouchableOpacity } from 'react-native';
+import { useTranslation } from 'react-i18next';
 import { MaterialIcons } from '@expo/vector-icons';
 import { styles } from './signup.styles';
 
@@ -24,17 +25,19 @@ export const UserDetailsStep: React.FC<UserDetailsStepProps> = ({
   countryCode,
   onOpenCountryModal,
 }) => {
+  const { t } = useTranslation(['common', 'signup']);
+
   return (
     <View style={styles.stepBlock}>
-      <Text style={styles.stepTitle}>Owner Details</Text>
-      <Text style={styles.stepSubtitle}>Provide personal details to secure your profile</Text>
+      <Text style={styles.stepTitle}>{t('signup:user.title')}</Text>
+      <Text style={styles.stepSubtitle}>{t('signup:user.subtitle')}</Text>
 
       <View style={styles.inputGroup}>
-        <Text style={styles.inputLabel}>Full Name *</Text>
+        <Text style={styles.inputLabel}>{t('signup:user.nameLabel')}</Text>
         <View style={styles.inputWrapper}>
           <TextInput
             style={styles.input}
-            placeholder="Enter your full name"
+            placeholder={t('signup:user.namePlaceholder')}
             placeholderTextColor="#94a3b8"
             value={fullName}
             onChangeText={onChangeFullName}
@@ -43,11 +46,11 @@ export const UserDetailsStep: React.FC<UserDetailsStepProps> = ({
       </View>
 
       <View style={styles.inputGroup}>
-        <Text style={styles.inputLabel}>Email Address *</Text>
+        <Text style={styles.inputLabel}>{t('signup:user.emailLabel')}</Text>
         <View style={styles.inputWrapper}>
           <TextInput
             style={styles.input}
-            placeholder="Enter your email address"
+            placeholder={t('signup:user.emailPlaceholder')}
             placeholderTextColor="#94a3b8"
             value={email}
             onChangeText={onChangeEmail}
@@ -58,7 +61,7 @@ export const UserDetailsStep: React.FC<UserDetailsStepProps> = ({
       </View>
 
       <View style={styles.inputGroup}>
-        <Text style={styles.inputLabel}>Phone Number *</Text>
+        <Text style={styles.inputLabel}>{t('signup:user.phoneLabel')}</Text>
         <View style={[styles.inputWrapper, { paddingHorizontal: 0 }]}>
           <TouchableOpacity
             style={styles.countryCodeSelector}
@@ -70,7 +73,7 @@ export const UserDetailsStep: React.FC<UserDetailsStepProps> = ({
           <View style={styles.verticalDivider} />
           <TextInput
             style={[styles.input, { paddingHorizontal: 12 }]}
-            placeholder="Enter 10-digit mobile number"
+            placeholder={t('signup:user.phonePlaceholder')}
             placeholderTextColor="#94a3b8"
             value={phone}
             onChangeText={onChangePhone}

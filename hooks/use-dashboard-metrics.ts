@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useSessionStore } from '@/stores/session-store';
+import { useDataEventStore } from '@/stores/data-event-store';
 import {
   getDashboardMetrics,
   DashboardMetrics,
@@ -19,6 +20,9 @@ const INITIAL_METRICS: DashboardMetrics = {
 export const useDashboardMetrics = () => {
   const storeId = useSessionStore((state) => state.currentUser?.storeId ?? 'DEMO-1001');
   const currencySymbol = useSessionStore((state) => state.currentUser?.currencySymbol ?? '$');
+  const transactionsVersion = useDataEventStore((state) => state.transactionsVersion);
+  const productsVersion = useDataEventStore((state) => state.productsVersion);
+
   const [metrics, setMetrics] = useState<DashboardMetrics>(INITIAL_METRICS);
   const [isLoading, setIsLoading] = useState(true);
 
@@ -50,7 +54,7 @@ export const useDashboardMetrics = () => {
     return () => {
       isMounted = false;
     };
-  }, [storeId]);
+  }, [storeId, transactionsVersion, productsVersion]);
 
   return {
     metrics,

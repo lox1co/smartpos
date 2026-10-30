@@ -4,6 +4,7 @@ import { countPendingOutbox } from '@/db/repositories/sync-outbox-repository';
 import { useCartStore } from '@/stores/cart-store';
 import { useSessionStore } from '@/stores/session-store';
 import { useSyncStore } from '@/stores/sync-store';
+import { useDataEventStore } from '@/stores/data-event-store';
 import { TransactionSelect } from '@/db/schema/transactions';
 import { generateUuid } from '@/utils/uuid';
 
@@ -95,6 +96,8 @@ export const useCheckout = () => {
 
       const pendingCount = await countPendingOutbox(storeId);
       setPendingOutboxCount(pendingCount);
+
+      useDataEventStore.getState().notifyCheckoutCompleted();
 
       return {
         transaction: result,

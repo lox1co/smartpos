@@ -14,12 +14,14 @@ import {
 } from 'react-native';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
+import { useTranslation } from 'react-i18next';
 import { MaterialIcons } from '@expo/vector-icons';
 import { useProfile } from '@/hooks/use-profile';
 
 export default function ShopGstScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
+  const { t } = useTranslation(['common', 'shop']);
   const { user, saveProfile, toastMsg, showToast } = useProfile();
 
   const [gstNumber, setGstNumber] = useState(user?.gstNumber || '');
@@ -32,12 +34,12 @@ export default function ShopGstScreen() {
       await saveProfile({
         gstNumber: gstNumber.trim().toUpperCase(),
       });
-      showToast('GST Number updated!');
+      showToast(t('shop:gst.toastUpdated'));
       setTimeout(() => {
         router.back();
       }, 500);
     } catch {
-      Alert.alert('Update Failed', 'Could not update GST Number.');
+      Alert.alert(t('common:alerts.error'), t('shop:gst.updateFailed'));
     } finally {
       setSaving(false);
     }
@@ -56,7 +58,7 @@ export default function ShopGstScreen() {
         <TouchableOpacity onPress={() => router.back()} style={styles.backBtn} activeOpacity={0.7}>
           <MaterialIcons name="arrow-back" size={22} color="#0f172a" />
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>GST & Tax Details</Text>
+        <Text style={styles.headerTitle}>{t('shop:gst.title')}</Text>
         <TouchableOpacity
           onPress={handleSave}
           disabled={saving}
@@ -66,7 +68,7 @@ export default function ShopGstScreen() {
           {saving ? (
             <ActivityIndicator size="small" color="#004ac6" />
           ) : (
-            <Text style={styles.headerSaveText}>Save</Text>
+            <Text style={styles.headerSaveText}>{t('common:actions.save')}</Text>
           )}
         </TouchableOpacity>
       </View>
@@ -82,23 +84,23 @@ export default function ShopGstScreen() {
                 <MaterialIcons name="receipt-long" size={26} color="#4f46e5" />
               </View>
               <View style={styles.bannerTextCol}>
-                <Text style={styles.bannerTitle}>Goods & Services Tax (GSTIN)</Text>
+                <Text style={styles.bannerTitle}>{t('shop:gst.bannerTitle')}</Text>
                 <Text style={styles.bannerSub}>
-                  Printed on thermal customer receipts and invoice exports.
+                  {t('shop:gst.bannerSub')}
                 </Text>
               </View>
             </View>
 
-            <Text style={styles.sectionHeading}>GST Identification Number</Text>
+            <Text style={styles.sectionHeading}>{t('shop:gst.sectionHeading')}</Text>
             <View style={styles.card}>
               <View style={styles.fieldLabelRow}>
                 <MaterialIcons name="verified-user" size={16} color="#004ac6" />
-                <Text style={styles.fieldLabel}>15-Digit GSTIN Number</Text>
+                <Text style={styles.fieldLabel}>{t('shop:gst.fieldLabel')}</Text>
               </View>
               <View style={styles.inputBox}>
                 <TextInput
                   style={styles.textInput}
-                  placeholder="e.g. 29AAAAA0000A1Z5"
+                  placeholder={t('shop:gst.placeholder')}
                   placeholderTextColor="#94a3b8"
                   value={gstNumber}
                   onChangeText={setGstNumber}
@@ -110,7 +112,7 @@ export default function ShopGstScreen() {
               <View style={styles.formatInfoBox}>
                 <MaterialIcons name="info-outline" size={15} color="#64748b" />
                 <Text style={styles.formatInfoText}>
-                  Format: 2-digit State + 10-digit PAN + 1 Entity + &apos;Z&apos; + 1 Check
+                  {t('shop:gst.formatInfo')}
                 </Text>
               </View>
             </View>
@@ -118,11 +120,11 @@ export default function ShopGstScreen() {
             <View style={styles.infoCard}>
               <View style={styles.infoRow}>
                 <MaterialIcons name="print" size={18} color="#004ac6" />
-                <Text style={styles.infoRowText}>Printed on POS thermal receipt header</Text>
+                <Text style={styles.infoRowText}>{t('shop:gst.printedReceipt')}</Text>
               </View>
               <View style={[styles.infoRow, { borderBottomWidth: 0 }]}>
                 <MaterialIcons name="picture-as-pdf" size={18} color="#004ac6" />
-                <Text style={styles.infoRowText}>Included in PDF invoices & GST summaries</Text>
+                <Text style={styles.infoRowText}>{t('shop:gst.includedPdf')}</Text>
               </View>
             </View>
           </View>
@@ -139,7 +141,7 @@ export default function ShopGstScreen() {
               ) : (
                 <>
                   <MaterialIcons name="save" size={20} color="#ffffff" />
-                  <Text style={styles.saveButtonText}>Save GST Number</Text>
+                  <Text style={styles.saveButtonText}>{t('shop:gst.saveButton')}</Text>
                 </>
               )}
             </TouchableOpacity>

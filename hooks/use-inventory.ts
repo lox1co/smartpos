@@ -1,5 +1,6 @@
 import { useMemo, useCallback } from 'react';
 import { useProductCatalog } from './use-product-catalog';
+import { useDataEventStore } from '@/stores/data-event-store';
 import { restockProductStock } from '@/db/repositories/product-repository';
 
 export const useInventory = (searchQuery?: string, filter: string = 'All Stock') => {
@@ -31,9 +32,9 @@ export const useInventory = (searchQuery?: string, filter: string = 'All Stock')
   const restock = useCallback(
     async (productId: string, quantity: number): Promise<void> => {
       await restockProductStock(productId, quantity);
-      refreshCatalog();
+      useDataEventStore.getState().notifyProductMutation();
     },
-    [refreshCatalog]
+    []
   );
 
   return {

@@ -9,6 +9,7 @@ import {
   StyleSheet,
   Alert,
 } from 'react-native';
+import { useTranslation } from 'react-i18next';
 import { MaterialIcons } from '@expo/vector-icons';
 
 interface AddCustomerModalProps {
@@ -22,6 +23,7 @@ export const AddCustomerModal = ({
   onClose,
   onAdd,
 }: AddCustomerModalProps) => {
+  const { t } = useTranslation(['common', 'customers']);
   const [name, setName] = useState('');
   const [phone, setPhone] = useState('');
   const [loading, setLoading] = useState(false);
@@ -30,7 +32,10 @@ export const AddCustomerModal = ({
 
   const handleSubmit = async () => {
     if (!name.trim()) {
-      Alert.alert('Validation Error', 'Customer name is required.');
+      Alert.alert(
+        t('customers:addModal.validationErrorTitle'),
+        t('customers:addModal.validationErrorMessage')
+      );
       return;
     }
     setLoading(true);
@@ -51,17 +56,17 @@ export const AddCustomerModal = ({
           <TouchableWithoutFeedback>
             <View style={addStyles.container}>
               <View style={addStyles.header}>
-                <Text style={addStyles.title}>Add New Customer</Text>
+                <Text style={addStyles.title}>{t('customers:addModal.title')}</Text>
                 <TouchableOpacity onPress={onClose}>
                   <MaterialIcons name="close" size={24} color="#737686" />
                 </TouchableOpacity>
               </View>
 
               <View style={addStyles.inputGroup}>
-                <Text style={addStyles.label}>Customer Name *</Text>
+                <Text style={addStyles.label}>{t('customers:addModal.nameLabel')}</Text>
                 <TextInput
                   style={addStyles.input}
-                  placeholder="e.g. John Doe"
+                  placeholder={t('customers:addModal.namePlaceholder')}
                   value={name}
                   onChangeText={setName}
                   autoFocus
@@ -69,10 +74,10 @@ export const AddCustomerModal = ({
               </View>
 
               <View style={addStyles.inputGroup}>
-                <Text style={addStyles.label}>Phone Number</Text>
+                <Text style={addStyles.label}>{t('customers:addModal.phoneLabel')}</Text>
                 <TextInput
                   style={addStyles.input}
-                  placeholder="e.g. +1 555-0199"
+                  placeholder={t('customers:addModal.phonePlaceholder')}
                   keyboardType="phone-pad"
                   value={phone}
                   onChangeText={setPhone}
@@ -81,7 +86,7 @@ export const AddCustomerModal = ({
 
               <View style={addStyles.btnRow}>
                 <TouchableOpacity style={addStyles.cancelBtn} onPress={onClose}>
-                  <Text style={addStyles.cancelText}>Cancel</Text>
+                  <Text style={addStyles.cancelText}>{t('common:actions.cancel')}</Text>
                 </TouchableOpacity>
                 <TouchableOpacity
                   style={[addStyles.submitBtn, loading && { opacity: 0.6 }]}
@@ -89,7 +94,9 @@ export const AddCustomerModal = ({
                   onPress={handleSubmit}
                 >
                   <Text style={addStyles.submitText}>
-                    {loading ? 'Adding...' : 'Add Customer'}
+                    {loading
+                      ? t('customers:addModal.submitting')
+                      : t('customers:addModal.submit')}
                   </Text>
                 </TouchableOpacity>
               </View>

@@ -10,6 +10,7 @@ import {
   StyleSheet,
   ActivityIndicator,
 } from 'react-native';
+import { useTranslation } from 'react-i18next';
 import { MaterialIcons } from '@expo/vector-icons';
 import { CustomerSelect } from '@/db/schema/customers';
 import { useCustomerCreditEntries } from '@/hooks/use-customers';
@@ -30,6 +31,7 @@ export const CustomerLedgerModal = ({
   onClose,
   onRecordPayment,
 }: CustomerLedgerModalProps) => {
+  const { t } = useTranslation(['common', 'customers']);
   const { entries, loading } = useCustomerCreditEntries(customer?.id, visible);
   const [payAmount, setPayAmount] = useState('');
   const [payNote, setPayNote] = useState('');
@@ -70,20 +72,26 @@ export const CustomerLedgerModal = ({
               </View>
 
               <View style={ledgerStyles.balanceCard}>
-                <Text style={ledgerStyles.balanceLabel}>Current Outstanding Balance</Text>
+                <Text style={ledgerStyles.balanceLabel}>
+                  {t('customers:ledgerModal.balanceLabel')}
+                </Text>
                 <Text style={ledgerStyles.balanceAmount}>
                   {formatCents(customer.creditBalanceCents, currencySymbol)}
                 </Text>
               </View>
 
-              <Text style={ledgerStyles.sectionTitle}>Transaction Ledger</Text>
+              <Text style={ledgerStyles.sectionTitle}>
+                {t('customers:ledgerModal.sectionTitle')}
+              </Text>
 
               {loading ? (
                 <ActivityIndicator style={{ paddingVertical: 20 }} color="#004fe6" />
               ) : (
                 <ScrollView style={ledgerStyles.entriesList}>
                   {entries.length === 0 ? (
-                    <Text style={ledgerStyles.emptyListText}>No credit entries recorded</Text>
+                    <Text style={ledgerStyles.emptyListText}>
+                      {t('customers:ledgerModal.emptyList')}
+                    </Text>
                   ) : (
                     entries.map((e) => {
                       const isCredit = e.entryType === 'CREDIT';
@@ -91,7 +99,9 @@ export const CustomerLedgerModal = ({
                         <View key={e.id} style={ledgerStyles.entryRow}>
                           <View style={{ flex: 1 }}>
                             <Text style={ledgerStyles.entryType}>
-                              {isCredit ? 'Payment / Repayment' : 'Bought on Credit'}
+                              {isCredit
+                                ? t('customers:ledgerModal.paymentRepayment')
+                                : t('customers:ledgerModal.boughtOnCredit')}
                             </Text>
                             <Text style={ledgerStyles.entryDate}>
                               {new Date(e.createdAt).toLocaleString()}
@@ -118,14 +128,14 @@ export const CustomerLedgerModal = ({
                 <View style={ledgerStyles.paySection}>
                   <TextInput
                     style={ledgerStyles.payInput}
-                    placeholder="Payment Amount (e.g. 50.00)"
+                    placeholder={t('customers:ledgerModal.payAmountPlaceholder')}
                     keyboardType="numeric"
                     value={payAmount}
                     onChangeText={setPayAmount}
                   />
                   <TextInput
                     style={ledgerStyles.payInput}
-                    placeholder="Note (optional)"
+                    placeholder={t('customers:ledgerModal.payNotePlaceholder')}
                     value={payNote}
                     onChangeText={setPayNote}
                   />
@@ -134,7 +144,7 @@ export const CustomerLedgerModal = ({
                       style={ledgerStyles.cancelPayBtn}
                       onPress={() => setShowPayInput(false)}
                     >
-                      <Text style={ledgerStyles.cancelPayText}>Cancel</Text>
+                      <Text style={ledgerStyles.cancelPayText}>{t('common:actions.cancel')}</Text>
                     </TouchableOpacity>
                     <TouchableOpacity
                       style={[ledgerStyles.submitPayBtn, recording && { opacity: 0.6 }]}
@@ -142,7 +152,9 @@ export const CustomerLedgerModal = ({
                       onPress={handlePayment}
                     >
                       <Text style={ledgerStyles.submitPayText}>
-                        {recording ? 'Recording...' : 'Record Payment'}
+                        {recording
+                          ? t('customers:ledgerModal.recording')
+                          : t('customers:ledgerModal.submitPay')}
                       </Text>
                     </TouchableOpacity>
                   </View>
@@ -153,7 +165,9 @@ export const CustomerLedgerModal = ({
                   onPress={() => setShowPayInput(true)}
                 >
                   <MaterialIcons name="add" size={20} color="#ffffff" />
-                  <Text style={ledgerStyles.recordBtnText}>Record Repayment</Text>
+                  <Text style={ledgerStyles.recordBtnText}>
+                    {t('customers:ledgerModal.recordRepayment')}
+                  </Text>
                 </TouchableOpacity>
               )}
             </View>

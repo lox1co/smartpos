@@ -6,6 +6,7 @@ import {
   TouchableOpacity,
   ActivityIndicator,
 } from 'react-native';
+import { useTranslation } from 'react-i18next';
 import { MaterialIcons } from '@expo/vector-icons';
 import { SHOP_CATEGORIES } from '@/constants/config';
 import { styles, THEME } from './signup.styles';
@@ -47,18 +48,20 @@ export const StoreDetailsStep: React.FC<StoreDetailsStepProps> = ({
   isVerifyingStore,
   storeVerifyError,
 }) => {
+  const { t } = useTranslation(['common', 'signup']);
+
   if (signupMode === 'new_store') {
     return (
       <View style={styles.stepBlock}>
-        <Text style={styles.stepTitle}>Shop Information</Text>
-        <Text style={styles.stepSubtitle}>Enter details of the shop you want to register</Text>
+        <Text style={styles.stepTitle}>{t('signup:store.newStoreTitle')}</Text>
+        <Text style={styles.stepSubtitle}>{t('signup:store.newStoreSubtitle')}</Text>
 
         <View style={styles.inputGroup}>
-          <Text style={styles.inputLabel}>Shop Name *</Text>
+          <Text style={styles.inputLabel}>{t('signup:store.shopNameLabel')}</Text>
           <View style={styles.inputWrapper}>
             <TextInput
               style={styles.input}
-              placeholder="Enter business / shop name"
+              placeholder={t('signup:store.shopNamePlaceholder')}
               placeholderTextColor="#94a3b8"
               value={shopName}
               onChangeText={onChangeShopName}
@@ -67,7 +70,7 @@ export const StoreDetailsStep: React.FC<StoreDetailsStepProps> = ({
         </View>
 
         <View style={styles.inputGroup}>
-          <Text style={styles.inputLabel}>Category *</Text>
+          <Text style={styles.inputLabel}>{t('signup:store.categoryLabel')}</Text>
           <TouchableOpacity
             style={[styles.inputWrapper, styles.dropdownTrigger]}
             onPress={onOpenCategoryModal}
@@ -76,18 +79,18 @@ export const StoreDetailsStep: React.FC<StoreDetailsStepProps> = ({
             <Text style={[styles.dropdownText, { color: shopCategory ? THEME.textPrimary : '#94a3b8' }]}>
               {shopCategory
                 ? SHOP_CATEGORIES.find((c) => c.value === shopCategory)?.label
-                : 'Select Shop Category'}
+                : t('signup:store.selectCategory')}
             </Text>
             <MaterialIcons name="arrow-drop-down" size={24} color="#64748b" />
           </TouchableOpacity>
         </View>
 
         <View style={styles.inputGroup}>
-          <Text style={styles.inputLabel}>GST Number (Optional)</Text>
+          <Text style={styles.inputLabel}>{t('signup:store.gstLabel')}</Text>
           <View style={styles.inputWrapper}>
             <TextInput
               style={styles.input}
-              placeholder="Enter GSTIN (optional)"
+              placeholder={t('signup:store.gstPlaceholder')}
               placeholderTextColor="#94a3b8"
               value={gstNumber}
               onChangeText={onChangeGstNumber}
@@ -97,11 +100,11 @@ export const StoreDetailsStep: React.FC<StoreDetailsStepProps> = ({
         </View>
 
         <View style={styles.inputGroup}>
-          <Text style={styles.inputLabel}>Business Address (Optional)</Text>
+          <Text style={styles.inputLabel}>{t('signup:store.addressLabel')}</Text>
           <View style={styles.inputWrapper}>
             <TextInput
               style={styles.input}
-              placeholder="Enter street, area, city"
+              placeholder={t('signup:store.addressPlaceholder')}
               placeholderTextColor="#94a3b8"
               value={businessAddress}
               onChangeText={onChangeBusinessAddress}
@@ -114,15 +117,15 @@ export const StoreDetailsStep: React.FC<StoreDetailsStepProps> = ({
 
   return (
     <View style={styles.stepBlock}>
-      <Text style={styles.stepTitle}>Enter Store ID</Text>
-      <Text style={styles.stepSubtitle}>Provide the join code issued by your store owner</Text>
+      <Text style={styles.stepTitle}>{t('signup:store.joinStoreTitle')}</Text>
+      <Text style={styles.stepSubtitle}>{t('signup:store.joinStoreSubtitle')}</Text>
 
       <View style={styles.inputGroup}>
-        <Text style={styles.inputLabel}>Store ID / Join Code *</Text>
+        <Text style={styles.inputLabel}>{t('signup:store.joinCodeLabel')}</Text>
         <View style={[styles.inputWrapper, verifiedStore && styles.inputWrapperSuccess]}>
           <TextInput
             style={[styles.input, { letterSpacing: 1.5, fontWeight: '700' }]}
-            placeholder="Enter store ID / join code"
+            placeholder={t('signup:store.joinCodePlaceholder')}
             placeholderTextColor="#94a3b8"
             value={joinStoreId}
             onChangeText={onVerifyJoinCode}
@@ -139,7 +142,7 @@ export const StoreDetailsStep: React.FC<StoreDetailsStepProps> = ({
           <View style={styles.verifiedBadge}>
             <MaterialIcons name="store" size={16} color="#16a34a" />
             <Text style={styles.verifiedBadgeText}>
-              Verified: <Text style={{ fontWeight: '700' }}>{verifiedStore.name}</Text>
+              {t('signup:store.verified', { name: verifiedStore.name })}
             </Text>
           </View>
         ) : storeVerifyError && joinStoreId.length >= 3 ? (
@@ -148,7 +151,7 @@ export const StoreDetailsStep: React.FC<StoreDetailsStepProps> = ({
       </View>
 
       <View style={styles.inputGroup}>
-        <Text style={styles.inputLabel}>Select Your Role</Text>
+        <Text style={styles.inputLabel}>{t('signup:store.roleLabel')}</Text>
         <View style={styles.rolePickerRow}>
           <TouchableOpacity
             style={[styles.roleChip, joinRole === 'cashier' && styles.roleChipActive]}
@@ -160,7 +163,7 @@ export const StoreDetailsStep: React.FC<StoreDetailsStepProps> = ({
               color={joinRole === 'cashier' ? '#2563eb' : '#64748b'}
             />
             <Text style={[styles.roleChipText, joinRole === 'cashier' && styles.roleChipTextActive]}>
-              Cashier
+              {t('signup:store.cashier')}
             </Text>
           </TouchableOpacity>
 
@@ -174,7 +177,7 @@ export const StoreDetailsStep: React.FC<StoreDetailsStepProps> = ({
               color={joinRole === 'manager' ? '#2563eb' : '#64748b'}
             />
             <Text style={[styles.roleChipText, joinRole === 'manager' && styles.roleChipTextActive]}>
-              Manager
+              {t('signup:store.manager')}
             </Text>
           </TouchableOpacity>
         </View>

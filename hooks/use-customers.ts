@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback, useMemo } from 'react';
 import { useSessionStore } from '@/stores/session-store';
+import { useDataEventStore } from '@/stores/data-event-store';
 import {
   listCustomers,
   upsertCustomer,
@@ -61,6 +62,7 @@ export const useCustomerCreditEntries = (customerId?: string, visible: boolean =
 export const useCustomers = () => {
   const storeId = useSessionStore((state) => state.currentUser?.storeId ?? 'DEMO-1001');
   const currencySymbol = useSessionStore((state) => state.currentUser?.currencySymbol ?? '$');
+  const customersVersion = useDataEventStore((state) => state.customersVersion);
 
   const [customers, setCustomers] = useState<CustomerSelect[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -94,7 +96,7 @@ export const useCustomers = () => {
     return () => {
       isMounted = false;
     };
-  }, [storeId]);
+  }, [storeId, customersVersion]);
 
   const totalOutstandingCents = useMemo(() => {
     return customers.reduce(
@@ -122,10 +124,10 @@ export const useCustomers = () => {
         creditBalanceCents: 0,
         createdAt: Date.now(),
       });
-      await loadData();
+      useDataEventStore.getState().notifyCustomerMutation();
       return newId;
     },
-    [storeId, loadData]
+    [storeId]
   );
 
   const recordPayment = useCallback(
@@ -140,9 +142,9 @@ export const useCustomers = () => {
         invoiceNumber: null,
         createdAt: Date.now(),
       });
-      await loadData();
+      useDataEventStore.getState().notifyCustomerMutation();
     },
-    [storeId, loadData]
+    [storeId]
   );
 
   return {

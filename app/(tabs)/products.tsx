@@ -7,8 +7,9 @@ import {
   FlatList,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useRouter } from 'expo-router';
+import { useRouter, useFocusEffect } from 'expo-router';
 import { MaterialIcons } from '@expo/vector-icons';
+import { useTranslation } from 'react-i18next';
 import { useProductCatalog } from '@/hooks/use-product-catalog';
 import { useSessionStore } from '@/stores/session-store';
 import { ProductSelect } from '@/db/schema/products';
@@ -22,16 +23,25 @@ import { PRODUCT_CATEGORIES } from '@/constants/config';
 
 export default function ProductsScreen() {
   const router = useRouter();
+  const { t } = useTranslation(['common', 'products']);
   const currencySymbol = useSessionStore((state) => state.currentUser?.currencySymbol ?? '$');
 
   const [searchQuery, setSearchQuery] = useState('');
-  const [selectedCategory, setSelectedCategory] = useState('All Items');
+  const [selectedCategory, setSelectedCategory] = useState(t('products:catalog.allItems'));
   const [selectedSort, setSelectedSort] = useState('name_asc');
   const [sortModalOpen, setSortModalOpen] = useState(false);
 
+  const isAllItems = selectedCategory === t('products:catalog.allItems') || selectedCategory === 'All Items';
+
   const { products, isLoading, refreshCatalog } = useProductCatalog(
-    selectedCategory === 'All Items' ? undefined : selectedCategory,
+    isAllItems ? undefined : selectedCategory,
     searchQuery
+  );
+
+  useFocusEffect(
+    useCallback(() => {
+      void refreshCatalog();
+    }, [refreshCatalog])
   );
 
   const sortedProducts = useMemo(() => {
@@ -49,8 +59,8 @@ export default function ProductsScreen() {
   }, [products, selectedSort]);
 
   const activeSortLabel = useMemo(() => {
-    return SORT_OPTIONS.find((s) => s.id === selectedSort)?.label ?? 'Sort';
-  }, [selectedSort]);
+    return SORT_OPTIONS.find((s) => s.id === selectedSort)?.label ?? t('products:catalog.sort');
+  }, [selectedSort, t]);
 
   const handleProductPress = useCallback(
     (product: ProductSelect) => {
@@ -73,7 +83,7 @@ export default function ProductsScreen() {
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
       <View style={styles.header}>
-        <Text style={styles.headerTitle}>Products Catalog</Text>
+        <Text style={styles.headerTitle}>{t('products:catalog.title')}</Text>
       </View>
 
       <View style={styles.toolbar}>
@@ -81,7 +91,7 @@ export default function ProductsScreen() {
           <MaterialIcons name="search" size={20} color="#737686" />
           <TextInput
             style={styles.searchInput}
-            placeholder="Search products or SKU..."
+            placeholder={t('products:catalog.searchPlaceholder')}
             placeholderTextColor="#737686"
             value={searchQuery}
             onChangeText={setSearchQuery}
@@ -105,9 +115,9 @@ export default function ProductsScreen() {
           </TouchableOpacity>
 
           <TouchableOpacity
-            style={[styles.filterBtn, selectedCategory !== 'All Items' && styles.filterBtnActive]}
+            style={[styles.filterBtn, !isAllItems && styles.filterBtnActive]}
             onPress={() => {
-              const allCategories = ['All Items', ...PRODUCT_CATEGORIES];
+              const allCategories = [t('products:catalog.allItems'), ...PRODUCT_CATEGORIES];
               const nextIndex = (allCategories.indexOf(selectedCategory) + 1) % allCategories.length;
               setSelectedCategory(allCategories[nextIndex]);
             }}
@@ -115,12 +125,12 @@ export default function ProductsScreen() {
             <MaterialIcons
               name="category"
               size={16}
-              color={selectedCategory !== 'All Items' ? '#ffffff' : '#004fe6'}
+              color={!isAllItems ? '#ffffff' : '#004fe6'}
             />
             <Text
               style={[
                 styles.filterBtnText,
-                selectedCategory !== 'All Items' && styles.filterBtnTextActive,
+                !isAllItems && styles.filterBtnTextActive,
               ]}
               numberOfLines={1}
             >

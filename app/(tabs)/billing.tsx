@@ -9,7 +9,8 @@ import {
   Alert,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useRouter } from 'expo-router';
+import { useRouter, useFocusEffect } from 'expo-router';
+import { useTranslation } from 'react-i18next';
 import { MaterialIcons } from '@expo/vector-icons';
 import { useCart } from '@/hooks/use-cart';
 import { useProductCatalog } from '@/hooks/use-product-catalog';
@@ -34,6 +35,7 @@ const GRID_ITEM_HEIGHT = 207;
 
 export default function BillingScreen() {
   const router = useRouter();
+  const { t } = useTranslation(['common', 'billing']);
 
   const {
     items,
@@ -51,6 +53,12 @@ export default function BillingScreen() {
 
   const { products, refreshCatalog } = useProductCatalog(selectedCategory, searchQuery);
   const { isProcessing, processCheckout } = useCheckout();
+
+  useFocusEffect(
+    useCallback(() => {
+      void refreshCatalog();
+    }, [refreshCatalog])
+  );
 
   const shopName = useSessionStore((state) => state.currentUser?.shopName ?? 'SmartPOS Store');
   const storeAddress = useSessionStore((state) => state.currentUser?.businessAddress);
@@ -97,9 +105,8 @@ export default function BillingScreen() {
       setPaymentModalOpen(false);
       setIsCartOpen(false);
       setCompletedSale(saleResult);
-      refreshCatalog();
     } catch {
-      Alert.alert('Checkout Error', 'Failed to complete transaction.');
+      Alert.alert(t('billing:checkout.errorTitle'), t('billing:checkout.error'));
     }
   };
 
@@ -127,7 +134,7 @@ export default function BillingScreen() {
   return (
     <SafeAreaView style={styles.safeArea} edges={['top']}>
       <View style={styles.header}>
-        <Text style={styles.headerTitle}>Billing & POS</Text>
+        <Text style={styles.headerTitle}>{t('billing:header.title')}</Text>
         <View style={styles.headerRight}>
           <TouchableOpacity onPress={() => router.push('/scanner')}>
             <MaterialIcons name="qr-code-scanner" size={26} color="#004fe6" />
@@ -139,7 +146,7 @@ export default function BillingScreen() {
         <MaterialIcons name="search" size={20} color="#737686" />
         <TextInput
           style={styles.searchInput}
-          placeholder="Search products or SKU..."
+          placeholder={t('billing:search.placeholder')}
           placeholderTextColor="#737686"
           value={searchQuery}
           onChangeText={setSearchQuery}
@@ -155,6 +162,7 @@ export default function BillingScreen() {
         <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.categoryList}>
           {CATEGORIES.map((cat) => {
             const active = selectedCategory === cat;
+            const label = cat === 'All Items' ? t('billing:categories.allItems') : cat;
             return (
               <TouchableOpacity
                 key={cat}
@@ -162,7 +170,7 @@ export default function BillingScreen() {
                 onPress={() => setSelectedCategory(cat)}
               >
                 <Text style={[styles.categoryText, active && styles.categoryTextActive]}>
-                  {cat}
+                  {label}
                 </Text>
               </TouchableOpacity>
             );
@@ -185,7 +193,9 @@ export default function BillingScreen() {
         ListEmptyComponent={
           <View style={{ alignItems: 'center', marginTop: 60 }}>
             <MaterialIcons name="inventory-2" size={48} color="#c3c6d7" />
-            <Text style={{ color: '#737686', marginTop: 12 }}>No products found</Text>
+            <Text style={{ color: '#737686', marginTop: 12 }}>
+              {t('billing:empty.noProducts')}
+            </Text>
           </View>
         }
       />
@@ -205,7 +215,7 @@ export default function BillingScreen() {
             </Text>
           </View>
           <View style={styles.floatingCartCta}>
-            <Text style={styles.floatingCartCtaText}>View Cart</Text>
+            <Text style={styles.floatingCartCtaText}>{t('billing:floating.viewCart')}</Text>
             <MaterialIcons name="chevron-right" size={20} color="#ffffff" />
           </View>
         </TouchableOpacity>

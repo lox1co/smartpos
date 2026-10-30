@@ -2,11 +2,13 @@ import React from 'react';
 import { StyleSheet, View, Text, ScrollView, TouchableOpacity, Linking } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
+import { useTranslation } from 'react-i18next';
 import { MaterialIcons } from '@expo/vector-icons';
 import { useSessionStore } from '@/stores/session-store';
 
 export default function ContactScreen() {
   const router = useRouter();
+  const { t } = useTranslation(['common', 'support']);
   const storeId = useSessionStore((state) => state.currentUser?.storeId) || '—';
 
   return (
@@ -15,7 +17,7 @@ export default function ContactScreen() {
         <TouchableOpacity onPress={() => router.back()} style={styles.backBtn} activeOpacity={0.7}>
           <MaterialIcons name="arrow-back" size={22} color="#0f172a" />
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>Contact Support</Text>
+        <Text style={styles.headerTitle}>{t('support:contact.title')}</Text>
         <View style={{ width: 38 }} />
       </View>
 
@@ -25,12 +27,12 @@ export default function ContactScreen() {
             <MaterialIcons name="headset-mic" size={32} color="#ea580c" />
           </View>
           <View style={styles.heroBannerText}>
-            <Text style={styles.heroBannerTitle}>We are here to help</Text>
-            <Text style={styles.heroBannerSub}>Our team typically responds within 24 hours</Text>
+            <Text style={styles.heroBannerTitle}>{t('support:contact.bannerTitle')}</Text>
+            <Text style={styles.heroBannerSub}>{t('support:contact.bannerSub')}</Text>
           </View>
         </View>
 
-        <Text style={styles.sectionTitle}>Reach Us</Text>
+        <Text style={styles.sectionTitle}>{t('support:contact.reachUs')}</Text>
 
         <TouchableOpacity
           style={styles.contactCard}
@@ -41,9 +43,9 @@ export default function ContactScreen() {
             <MaterialIcons name="email" size={24} color="#2563eb" />
           </View>
           <View style={styles.contactCardText}>
-            <Text style={styles.contactCardTitle}>Email Support</Text>
+            <Text style={styles.contactCardTitle}>{t('support:contact.emailTitle')}</Text>
             <Text style={styles.contactCardSub}>zynocraftx@gmail.com</Text>
-            <Text style={styles.contactCardHint}>Tap to open mail app</Text>
+            <Text style={styles.contactCardHint}>{t('support:contact.emailHint')}</Text>
           </View>
           <MaterialIcons name="open-in-new" size={18} color="#94a3b8" />
         </TouchableOpacity>
@@ -57,21 +59,21 @@ export default function ContactScreen() {
             <MaterialIcons name="phone" size={24} color="#16a34a" />
           </View>
           <View style={styles.contactCardText}>
-            <Text style={styles.contactCardTitle}>Phone Support</Text>
+            <Text style={styles.contactCardTitle}>{t('support:contact.phoneTitle')}</Text>
             <Text style={styles.contactCardSub}>+1 (555) 019-2834</Text>
-            <Text style={styles.contactCardHint}>Mon - Sat, 9:00 AM - 7:00 PM</Text>
+            <Text style={styles.contactCardHint}>{t('support:contact.phoneHint')}</Text>
           </View>
           <MaterialIcons name="open-in-new" size={18} color="#94a3b8" />
         </TouchableOpacity>
 
-        <Text style={styles.sectionTitle}>Before you contact</Text>
+        <Text style={styles.sectionTitle}>{t('support:contact.beforeContact')}</Text>
 
         <View style={styles.infoBox}>
           <MaterialIcons name="info" size={20} color="#64748b" style={{ marginTop: 1 }} />
           <View style={styles.infoBoxText}>
-            <Text style={styles.infoBoxTitle}>Have your Store ID ready</Text>
+            <Text style={styles.infoBoxTitle}>{t('support:contact.storeIdReady')}</Text>
             <Text style={styles.infoBoxBody}>
-              Your Store ID is <Text style={{ fontWeight: '700', color: '#0f172a' }}>{storeId}</Text>. Providing it helps us look up your account instantly.
+              {t('support:contact.storeIdBody', { id: storeId })}
             </Text>
           </View>
         </View>
@@ -82,7 +84,7 @@ export default function ContactScreen() {
           activeOpacity={0.8}
         >
           <MaterialIcons name="help" size={20} color="#7c3aed" />
-          <Text style={styles.faqLinkText}>Check Frequently Asked Questions</Text>
+          <Text style={styles.faqLinkText}>{t('support:contact.checkFaq')}</Text>
           <MaterialIcons name="chevron-right" size={20} color="#7c3aed" />
         </TouchableOpacity>
       </ScrollView>

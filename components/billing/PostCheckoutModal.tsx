@@ -9,6 +9,7 @@ import {
   ActivityIndicator,
   Alert,
 } from 'react-native';
+import { useTranslation } from 'react-i18next';
 import { MaterialIcons } from '@expo/vector-icons';
 import { CompletedCheckoutResult } from '@/hooks/use-checkout';
 import { formatCents } from '@/utils/money';
@@ -36,6 +37,7 @@ export const PostCheckoutModal = ({
   gstNumber,
   onNewSale,
 }: PostCheckoutModalProps) => {
+  const { t } = useTranslation(['common', 'billing']);
   const [isPrinting, setIsPrinting] = useState(false);
   const [isSharing, setIsSharing] = useState(false);
 
@@ -70,7 +72,7 @@ export const PostCheckoutModal = ({
       });
       await printHtml(html);
     } catch {
-      Alert.alert('Print Error', 'Could not communicate with the printer.');
+      Alert.alert(t('billing:success.printErrorTitle'), t('billing:success.printErrorMessage'));
     } finally {
       setIsPrinting(false);
     }
@@ -101,7 +103,7 @@ export const PostCheckoutModal = ({
       });
       await shareHtmlAsPdf(html, `Receipt-${transaction.invoiceNumber}`);
     } catch {
-      Alert.alert('Share Error', 'Could not share receipt.');
+      Alert.alert(t('billing:success.shareErrorTitle'), t('billing:success.shareErrorMessage'));
     } finally {
       setIsSharing(false);
     }
@@ -117,12 +119,12 @@ export const PostCheckoutModal = ({
                 <MaterialIcons name="check-circle" size={54} color="#16a34a" />
               </View>
 
-              <Text style={styles.title}>Payment Successful</Text>
+              <Text style={styles.title}>{t('billing:success.title')}</Text>
               <Text style={styles.invoiceText}>{transaction.invoiceNumber}</Text>
 
               {hasChange && (
                 <View style={styles.changeBanner}>
-                  <Text style={styles.changeLabel}>CHANGE TO RETURN</Text>
+                  <Text style={styles.changeLabel}>{t('billing:success.changeToReturn')}</Text>
                   <Text style={styles.changeAmount}>
                     {formatCents(changeDueCents, currencySymbol)}
                   </Text>
@@ -131,20 +133,20 @@ export const PostCheckoutModal = ({
 
               <View style={styles.detailsBox}>
                 <View style={styles.detailRow}>
-                  <Text style={styles.detailLabel}>Total Amount</Text>
+                  <Text style={styles.detailLabel}>{t('billing:success.totalAmount')}</Text>
                   <Text style={styles.detailValueBold}>
                     {formatCents(transaction.totalCents, currencySymbol)}
                   </Text>
                 </View>
                 <View style={styles.detailRow}>
-                  <Text style={styles.detailLabel}>Payment Method</Text>
+                  <Text style={styles.detailLabel}>{t('billing:success.paymentMethod')}</Text>
                   <View style={styles.badge}>
                     <Text style={styles.badgeText}>{transaction.paymentMethod}</Text>
                   </View>
                 </View>
                 {transaction.amountPaidCents !== null && transaction.amountPaidCents !== undefined && (
                   <View style={styles.detailRow}>
-                    <Text style={styles.detailLabel}>Amount Tendered</Text>
+                    <Text style={styles.detailLabel}>{t('billing:success.amountTendered')}</Text>
                     <Text style={styles.detailValue}>
                       {formatCents(transaction.amountPaidCents, currencySymbol)}
                     </Text>
@@ -152,7 +154,7 @@ export const PostCheckoutModal = ({
                 )}
                 {transaction.customerName && (
                   <View style={styles.detailRow}>
-                    <Text style={styles.detailLabel}>Customer</Text>
+                    <Text style={styles.detailLabel}>{t('billing:success.customer')}</Text>
                     <Text style={styles.detailValue}>{transaction.customerName}</Text>
                   </View>
                 )}
@@ -169,7 +171,9 @@ export const PostCheckoutModal = ({
                   ) : (
                     <>
                       <MaterialIcons name="print" size={18} color="#004fe6" />
-                      <Text style={styles.actionBtnSecondaryText}>Print</Text>
+                      <Text style={styles.actionBtnSecondaryText}>
+                        {t('billing:success.print')}
+                      </Text>
                     </>
                   )}
                 </TouchableOpacity>
@@ -184,7 +188,9 @@ export const PostCheckoutModal = ({
                   ) : (
                     <>
                       <MaterialIcons name="share" size={18} color="#004fe6" />
-                      <Text style={styles.actionBtnSecondaryText}>Share</Text>
+                      <Text style={styles.actionBtnSecondaryText}>
+                        {t('billing:success.share')}
+                      </Text>
                     </>
                   )}
                 </TouchableOpacity>
@@ -192,7 +198,7 @@ export const PostCheckoutModal = ({
 
               <TouchableOpacity style={styles.newSaleBtn} onPress={onNewSale}>
                 <MaterialIcons name="add-shopping-cart" size={20} color="#ffffff" />
-                <Text style={styles.newSaleBtnText}>New Sale</Text>
+                <Text style={styles.newSaleBtnText}>{t('billing:success.newSale')}</Text>
               </TouchableOpacity>
             </View>
           </TouchableWithoutFeedback>

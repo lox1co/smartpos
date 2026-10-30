@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useCallback } from 'react';
 import {
   View,
   Text,
@@ -7,7 +7,7 @@ import {
   RefreshControl,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useRouter } from 'expo-router';
+import { useRouter, useFocusEffect } from 'expo-router';
 import { MaterialIcons } from '@expo/vector-icons';
 import Svg, { Path, Defs, LinearGradient, Stop } from 'react-native-svg';
 import { useDashboardMetrics } from '@/hooks/use-dashboard-metrics';
@@ -17,6 +17,12 @@ import { styles } from '@/components/dashboard/dashboard.styles';
 export default function DashboardScreen() {
   const router = useRouter();
   const { metrics, isLoading, currencySymbol, refreshMetrics } = useDashboardMetrics();
+
+  useFocusEffect(
+    useCallback(() => {
+      void refreshMetrics();
+    }, [refreshMetrics])
+  );
 
   const generateChartPaths = () => {
     const data = metrics.weeklyTrend;

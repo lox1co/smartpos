@@ -1,5 +1,6 @@
 import React, { memo } from 'react';
 import { View, Text, TouchableOpacity } from 'react-native';
+import { useTranslation } from 'react-i18next';
 import { TransactionSelect } from '@/db/schema/transactions';
 import { formatCents } from '@/utils/money';
 import { styles } from './transactions.styles';
@@ -27,6 +28,8 @@ export const TransactionCard = memo(function TransactionCard({
   currencySymbol,
   onPress,
 }: TransactionCardProps) {
+  const { t } = useTranslation(['common', 'transactions']);
+
   return (
     <TouchableOpacity
       style={styles.card}
@@ -45,7 +48,7 @@ export const TransactionCard = memo(function TransactionCard({
         <View style={styles.badgeRow}>
           {transaction.isPendingSync && (
             <View style={styles.syncBadge}>
-              <Text style={styles.syncBadgeText}>Offline</Text>
+              <Text style={styles.syncBadgeText}>{t('transactions:card.offline')}</Text>
             </View>
           )}
           <View style={styles.methodBadge}>
@@ -55,7 +58,9 @@ export const TransactionCard = memo(function TransactionCard({
       </View>
 
       {transaction.customerName && (
-        <Text style={styles.customerText}>Customer: {transaction.customerName}</Text>
+        <Text style={styles.customerText}>
+          {t('transactions:card.customer', { name: transaction.customerName })}
+        </Text>
       )}
     </TouchableOpacity>
   );

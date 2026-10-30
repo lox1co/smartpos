@@ -1,5 +1,6 @@
 import React, { memo } from 'react';
 import { View, Text, TouchableOpacity } from 'react-native';
+import { useTranslation } from 'react-i18next';
 import { MaterialIcons } from '@expo/vector-icons';
 import { CustomerSelect } from '@/db/schema/customers';
 import { formatCents } from '@/utils/money';
@@ -16,6 +17,7 @@ export const CustomerCard = memo(function CustomerCard({
   currencySymbol,
   onPress,
 }: CustomerCardProps) {
+  const { t } = useTranslation(['common', 'customers']);
   const owesMoney = customer.creditBalanceCents > 0;
 
   return (
@@ -43,7 +45,7 @@ export const CustomerCard = memo(function CustomerCard({
           {formatCents(customer.creditBalanceCents, currencySymbol)}
         </Text>
         <Text style={styles.balanceLabel}>
-          {owesMoney ? 'Outstanding' : 'Settled'}
+          {owesMoney ? t('customers:card.outstanding') : t('customers:card.settled')}
         </Text>
       </View>
     </TouchableOpacity>

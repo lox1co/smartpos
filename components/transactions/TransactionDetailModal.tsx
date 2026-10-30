@@ -9,6 +9,7 @@ import {
   StyleSheet,
   ActivityIndicator,
 } from 'react-native';
+import { useTranslation } from 'react-i18next';
 import { MaterialIcons } from '@expo/vector-icons';
 import { TransactionSelect } from '@/db/schema/transactions';
 import { TransactionItemSelect } from '@/db/schema/transaction-items';
@@ -30,6 +31,7 @@ export const TransactionDetailModal = ({
   onClose,
   onPrint,
 }: TransactionDetailModalProps) => {
+  const { t } = useTranslation(['common', 'transactions']);
   const { items, loading } = useTransactionItems(transaction?.id, visible);
 
   if (!visible || !transaction) return null;
@@ -54,22 +56,22 @@ export const TransactionDetailModal = ({
 
               <View style={detailStyles.infoCard}>
                 <View style={detailStyles.infoRow}>
-                  <Text style={detailStyles.infoLabel}>Payment Method</Text>
+                  <Text style={detailStyles.infoLabel}>{t('transactions:detail.paymentMethod')}</Text>
                   <Text style={detailStyles.infoValue}>{transaction.paymentMethod}</Text>
                 </View>
                 <View style={detailStyles.infoRow}>
-                  <Text style={detailStyles.infoLabel}>Status</Text>
+                  <Text style={detailStyles.infoLabel}>{t('transactions:detail.status')}</Text>
                   <Text style={detailStyles.infoValue}>{transaction.paymentStatus}</Text>
                 </View>
                 {transaction.customerName && (
                   <View style={detailStyles.infoRow}>
-                    <Text style={detailStyles.infoLabel}>Customer</Text>
+                    <Text style={detailStyles.infoLabel}>{t('transactions:detail.customer')}</Text>
                     <Text style={detailStyles.infoValue}>{transaction.customerName}</Text>
                   </View>
                 )}
               </View>
 
-              <Text style={detailStyles.sectionTitle}>Items</Text>
+              <Text style={detailStyles.sectionTitle}>{t('transactions:detail.items')}</Text>
 
               {loading ? (
                 <ActivityIndicator style={{ paddingVertical: 20 }} color="#004fe6" />
@@ -93,14 +95,14 @@ export const TransactionDetailModal = ({
 
               <View style={detailStyles.summaryFooter}>
                 <View style={detailStyles.summaryRow}>
-                  <Text style={detailStyles.summaryLabel}>Subtotal</Text>
+                  <Text style={detailStyles.summaryLabel}>{t('transactions:detail.subtotal')}</Text>
                   <Text style={detailStyles.summaryValue}>
                     {formatCents(transaction.subtotalCents, currencySymbol)}
                   </Text>
                 </View>
                 {transaction.discountCents > 0 && (
                   <View style={detailStyles.summaryRow}>
-                    <Text style={detailStyles.summaryLabel}>Discount</Text>
+                    <Text style={detailStyles.summaryLabel}>{t('transactions:detail.discount')}</Text>
                     <Text style={[detailStyles.summaryValue, { color: '#ba1a1a' }]}>
                       -{formatCents(transaction.discountCents, currencySymbol)}
                     </Text>
@@ -108,14 +110,16 @@ export const TransactionDetailModal = ({
                 )}
                 {transaction.taxCents > 0 && (
                   <View style={detailStyles.summaryRow}>
-                    <Text style={detailStyles.summaryLabel}>Tax</Text>
+                    <Text style={detailStyles.summaryLabel}>{t('transactions:detail.tax')}</Text>
                     <Text style={detailStyles.summaryValue}>
                       {formatCents(transaction.taxCents, currencySymbol)}
                     </Text>
                   </View>
                 )}
                 <View style={[detailStyles.summaryRow, { marginTop: 4, paddingTop: 6, borderTopWidth: 1, borderTopColor: '#eef0fa' }]}>
-                  <Text style={[detailStyles.summaryLabel, { fontWeight: '700', fontSize: 16, color: '#131b2e' }]}>Total</Text>
+                  <Text style={[detailStyles.summaryLabel, { fontWeight: '700', fontSize: 16, color: '#131b2e' }]}>
+                    {t('transactions:detail.total')}
+                  </Text>
                   <Text style={[detailStyles.summaryValue, { fontWeight: '800', fontSize: 18, color: '#004fe6' }]}>
                     {formatCents(transaction.totalCents, currencySymbol)}
                   </Text>
@@ -128,7 +132,7 @@ export const TransactionDetailModal = ({
                     onPress={() => onPrint(items)}
                   >
                     <MaterialIcons name="print" size={20} color="#ffffff" />
-                    <Text style={detailStyles.printBtnText}>Print Receipt</Text>
+                    <Text style={detailStyles.printBtnText}>{t('transactions:detail.printReceipt')}</Text>
                   </TouchableOpacity>
                 )}
               </View>

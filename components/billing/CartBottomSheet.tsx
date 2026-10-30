@@ -7,6 +7,7 @@ import {
   ScrollView,
   TouchableWithoutFeedback,
 } from 'react-native';
+import { useTranslation } from 'react-i18next';
 import { useCart } from '@/hooks/use-cart';
 import { CartItemRow } from './CartItemRow';
 import { formatCents } from '@/utils/money';
@@ -23,6 +24,7 @@ export const CartBottomSheet = ({
   onClose,
   onCheckoutPress,
 }: CartBottomSheetProps) => {
+  const { t } = useTranslation(['common', 'billing']);
   const {
     items,
     totals,
@@ -43,10 +45,12 @@ export const CartBottomSheet = ({
               <View style={styles.sheetHandle} />
 
               <View style={styles.sheetHeader}>
-                <Text style={styles.sheetTitle}>Current Order ({totals.totalItemsCount})</Text>
+                <Text style={styles.sheetTitle}>
+                  {t('billing:cart.title', { count: totals.totalItemsCount })}
+                </Text>
                 {items.length > 0 && (
                   <TouchableOpacity onPress={clearCart}>
-                    <Text style={styles.clearCartText}>Clear All</Text>
+                    <Text style={styles.clearCartText}>{t('billing:cart.clearAll')}</Text>
                   </TouchableOpacity>
                 )}
               </View>
@@ -54,7 +58,9 @@ export const CartBottomSheet = ({
               <ScrollView style={styles.cartItemsList} showsVerticalScrollIndicator={false}>
                 {items.length === 0 ? (
                   <View style={{ alignItems: 'center', paddingVertical: 40 }}>
-                    <Text style={{ color: '#737686', fontSize: 14 }}>Your cart is empty</Text>
+                    <Text style={{ color: '#737686', fontSize: 14 }}>
+                      {t('billing:cart.empty')}
+                    </Text>
                   </View>
                 ) : (
                   items.map((item) => (
@@ -73,7 +79,7 @@ export const CartBottomSheet = ({
               {items.length > 0 && (
                 <View style={styles.sheetFooter}>
                   <View style={styles.summaryRow}>
-                    <Text style={styles.summaryLabel}>Subtotal</Text>
+                    <Text style={styles.summaryLabel}>{t('billing:cart.subtotal')}</Text>
                     <Text style={styles.summaryValue}>
                       {formatCents(totals.subtotalCents, currencySymbol)}
                     </Text>
@@ -81,7 +87,7 @@ export const CartBottomSheet = ({
 
                   {totals.discountCents > 0 && (
                     <View style={styles.summaryRow}>
-                      <Text style={styles.summaryLabel}>Discount</Text>
+                      <Text style={styles.summaryLabel}>{t('billing:cart.discount')}</Text>
                       <Text style={[styles.summaryValue, { color: '#ba1a1a' }]}>
                         -{formatCents(totals.discountCents, currencySymbol)}
                       </Text>
@@ -90,7 +96,7 @@ export const CartBottomSheet = ({
 
                   {totals.taxCents > 0 && (
                     <View style={styles.summaryRow}>
-                      <Text style={styles.summaryLabel}>Tax</Text>
+                      <Text style={styles.summaryLabel}>{t('billing:cart.tax')}</Text>
                       <Text style={styles.summaryValue}>
                         {formatCents(totals.taxCents, currencySymbol)}
                       </Text>
@@ -98,14 +104,16 @@ export const CartBottomSheet = ({
                   )}
 
                   <View style={[styles.summaryRow, { marginTop: 4, paddingTop: 8, borderTopWidth: 1, borderTopColor: '#eef0fa' }]}>
-                    <Text style={[styles.summaryLabel, { fontWeight: '700', fontSize: 16, color: '#131b2e' }]}>Total</Text>
+                    <Text style={[styles.summaryLabel, { fontWeight: '700', fontSize: 16, color: '#131b2e' }]}>
+                      {t('billing:cart.total')}
+                    </Text>
                     <Text style={[styles.summaryValue, { fontWeight: '700', fontSize: 18, color: '#004fe6' }]}>
                       {formatCents(totals.totalCents, currencySymbol)}
                     </Text>
                   </View>
 
                   <TouchableOpacity style={styles.checkoutBtn} activeOpacity={0.8} onPress={onCheckoutPress}>
-                    <Text style={styles.checkoutBtnText}>Proceed to Payment</Text>
+                    <Text style={styles.checkoutBtnText}>{t('billing:cart.checkout')}</Text>
                   </TouchableOpacity>
                 </View>
               )}

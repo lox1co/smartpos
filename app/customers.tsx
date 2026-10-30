@@ -9,6 +9,7 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
+import { useTranslation } from 'react-i18next';
 import { MaterialIcons } from '@expo/vector-icons';
 import { useCustomers } from '@/hooks/use-customers';
 import { CustomerSelect } from '@/db/schema/customers';
@@ -22,6 +23,7 @@ import {
 
 export default function CustomersScreen() {
   const router = useRouter();
+  const { t } = useTranslation(['common', 'customers']);
   const {
     filteredCustomers,
     isLoading,
@@ -40,10 +42,16 @@ export default function CustomersScreen() {
   const handleAddCustomer = async (name: string, phone?: string) => {
     try {
       await addCustomer(name, phone);
-      Alert.alert('Customer Added', `${name} has been added to customers.`);
+      Alert.alert(
+        t('customers:alerts.customerAddedTitle'),
+        t('customers:alerts.customerAddedMessage', { name })
+      );
       setAddModalOpen(false);
     } catch {
-      Alert.alert('Error', 'Failed to add customer.');
+      Alert.alert(
+        t('customers:alerts.addErrorTitle'),
+        t('customers:alerts.addErrorMessage')
+      );
     }
   };
 
@@ -52,12 +60,18 @@ export default function CustomersScreen() {
     try {
       await recordPayment(selectedCustomer.id, amountCents, note);
       Alert.alert(
-        'Payment Recorded',
-        `Recorded ${formatCents(amountCents, currencySymbol)} repayment from ${selectedCustomer.name}.`
+        t('customers:alerts.paymentRecordedTitle'),
+        t('customers:alerts.paymentRecordedMessage', {
+          amount: formatCents(amountCents, currencySymbol),
+          name: selectedCustomer.name,
+        })
       );
       setSelectedCustomer(null);
     } catch {
-      Alert.alert('Error', 'Failed to record customer repayment.');
+      Alert.alert(
+        t('customers:alerts.paymentErrorTitle'),
+        t('customers:alerts.paymentErrorMessage')
+      );
     }
   };
 
@@ -78,7 +92,7 @@ export default function CustomersScreen() {
         <TouchableOpacity onPress={() => router.back()}>
           <MaterialIcons name="arrow-back" size={24} color="#131b2e" />
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>Customers & Khata</Text>
+        <Text style={styles.headerTitle}>{t('customers:header.title')}</Text>
         <TouchableOpacity onPress={loadData}>
           <MaterialIcons name="refresh" size={24} color="#004fe6" />
         </TouchableOpacity>
@@ -86,7 +100,7 @@ export default function CustomersScreen() {
 
       <View style={styles.totalBanner}>
         <View style={styles.totalCard}>
-          <Text style={styles.totalLabel}>Total Outstanding Balance (Owed)</Text>
+          <Text style={styles.totalLabel}>{t('customers:totalBanner.label')}</Text>
           <Text style={styles.totalAmount}>
             {formatCents(totalOutstandingCents, currencySymbol)}
           </Text>
@@ -98,7 +112,7 @@ export default function CustomersScreen() {
           <MaterialIcons name="search" size={20} color="#737686" />
           <TextInput
             style={styles.searchInput}
-            placeholder="Search customer by name or phone..."
+            placeholder={t('customers:search.placeholder')}
             placeholderTextColor="#737686"
             value={searchQuery}
             onChangeText={setSearchQuery}
@@ -122,7 +136,7 @@ export default function CustomersScreen() {
           !isLoading ? (
             <View style={styles.emptyContainer}>
               <MaterialIcons name="people-outline" size={48} color="#c3c6d7" />
-              <Text style={styles.emptyText}>No customers found</Text>
+              <Text style={styles.emptyText}>{t('customers:empty.noCustomers')}</Text>
             </View>
           ) : null
         }

@@ -9,6 +9,7 @@ import {
   Platform,
   KeyboardAvoidingView,
 } from 'react-native';
+import { useTranslation } from 'react-i18next';
 import { MaterialIcons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { useCart } from '@/hooks/use-cart';
@@ -33,14 +34,14 @@ interface PaymentModalProps {
 
 const PAYMENT_METHODS: {
   id: PaymentMethod;
-  label: string;
+  labelKey: 'cash' | 'upi' | 'card' | 'credit';
+  descKey: 'cashDesc' | 'upiDesc' | 'cardDesc' | 'creditDesc';
   icon: keyof typeof MaterialIcons.glyphMap;
-  desc: string;
 }[] = [
-  { id: 'CASH', label: 'Cash', icon: 'payments', desc: 'Cash payment' },
-  { id: 'UPI', label: 'UPI / QR', icon: 'qr-code-scanner', desc: 'Instant QR' },
-  { id: 'CARD', label: 'Card POS', icon: 'credit-card', desc: 'Debit / Credit' },
-  { id: 'CREDIT', label: 'Khata Book', icon: 'account-balance-wallet', desc: 'Credit ledger' },
+  { id: 'CASH', labelKey: 'cash', descKey: 'cashDesc', icon: 'payments' },
+  { id: 'UPI', labelKey: 'upi', descKey: 'upiDesc', icon: 'qr-code-scanner' },
+  { id: 'CARD', labelKey: 'card', descKey: 'cardDesc', icon: 'credit-card' },
+  { id: 'CREDIT', labelKey: 'credit', descKey: 'creditDesc', icon: 'account-balance-wallet' },
 ];
 
 export const PaymentModal = ({
@@ -50,6 +51,7 @@ export const PaymentModal = ({
   onConfirm,
 }: PaymentModalProps) => {
   const router = useRouter();
+  const { t } = useTranslation(['common', 'billing']);
   const { totals, currencySymbol } = useCart();
   const { customers } = useCustomers();
 
@@ -80,9 +82,12 @@ export const PaymentModal = ({
 
           <View style={paymentStyles.paymentModalHeader}>
             <View>
-              <Text style={paymentStyles.paymentModalTitle}>Complete Payment</Text>
+              <Text style={paymentStyles.paymentModalTitle}>{t('billing:payment.title')}</Text>
               <Text style={paymentStyles.paymentModalSubtitle}>
-                {totals.totalItemsCount} items · Cart Subtotal {formatCents(totals.subtotalCents, currencySymbol)}
+                {t('billing:payment.subtitle', {
+                  count: totals.totalItemsCount,
+                  amount: formatCents(totals.subtotalCents, currencySymbol),
+                })}
               </Text>
             </View>
             <TouchableOpacity
@@ -97,15 +102,15 @@ export const PaymentModal = ({
           <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 20 }}>
             <View style={paymentStyles.payableHeroCard}>
               <View style={paymentStyles.payableHeroLeft}>
-                <Text style={paymentStyles.payableHeroLabel}>Total Payable</Text>
-                <Text style={paymentStyles.payableHeroSub}>Includes all GST & discounts</Text>
+                <Text style={paymentStyles.payableHeroLabel}>{t('billing:payment.totalPayable')}</Text>
+                <Text style={paymentStyles.payableHeroSub}>{t('billing:payment.includesTax')}</Text>
               </View>
               <Text style={paymentStyles.payableHeroAmount}>
                 {formatCents(totals.totalCents, currencySymbol)}
               </Text>
             </View>
 
-            <Text style={paymentStyles.paymentSectionHeader}>Select Payment Mode</Text>
+            <Text style={paymentStyles.paymentSectionHeader}>{t('billing:payment.selectMode')}</Text>
             <View style={paymentStyles.paymentGrid}>
               {PAYMENT_METHODS.map((method) => {
                 const isSelected = selectedMethod === method.id;
@@ -142,9 +147,11 @@ export const PaymentModal = ({
                         isSelected && paymentStyles.paymentCardTitleSelected,
                       ]}
                     >
-                      {method.label}
+                      {t(`billing:payment.methods.${method.labelKey}`)}
                     </Text>
-                    <Text style={paymentStyles.paymentCardDesc}>{method.desc}</Text>
+                    <Text style={paymentStyles.paymentCardDesc}>
+                      {t(`billing:payment.methods.${method.descKey}`)}
+                    </Text>
                   </TouchableOpacity>
                 );
               })}
@@ -156,10 +163,10 @@ export const PaymentModal = ({
                   <MaterialIcons name="qr-code" size={24} color="#0284c7" />
                   <View style={{ flex: 1 }}>
                     <Text style={[paymentStyles.helperCardTitle, { color: '#0369a1', marginBottom: 2 }]}>
-                      Instant UPI Collection
+                      {t('billing:payment.upiTitle')}
                     </Text>
                     <Text style={{ fontSize: 12, color: '#0284c7' }}>
-                      Customer can scan your store QR code or soundbox. Verify transaction before confirming.
+                      {t('billing:payment.upiDesc')}
                     </Text>
                   </View>
                 </View>
@@ -172,10 +179,10 @@ export const PaymentModal = ({
                   <MaterialIcons name="credit-card" size={24} color="#7c3aed" />
                   <View style={{ flex: 1 }}>
                     <Text style={[paymentStyles.helperCardTitle, { color: '#6d28d9', marginBottom: 2 }]}>
-                      Card Terminal Payment
+                      {t('billing:payment.cardTitle')}
                     </Text>
                     <Text style={{ fontSize: 12, color: '#7c3aed' }}>
-                      Swipe, insert chip, or tap customer card on EDC machine.
+                      {t('billing:payment.cardDesc')}
                     </Text>
                   </View>
                 </View>
@@ -187,17 +194,17 @@ export const PaymentModal = ({
                 <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 8 }}>
                   <MaterialIcons name="account-balance-wallet" size={20} color="#b45309" />
                   <Text style={[paymentStyles.helperCardTitle, { color: '#b45309', marginBottom: 0 }]}>
-                    Khata / Credit Sale
+                    {t('billing:payment.creditTitle')}
                   </Text>
                 </View>
                 <Text style={{ fontSize: 12, color: '#92400e', marginBottom: 10, lineHeight: 16 }}>
-                  {"This amount will be added as outstanding debt in customer's ledger."}
+                  {t('billing:payment.creditDesc')}
                 </Text>
 
                 {customers.length > 0 && (
                   <View style={{ marginBottom: 10 }}>
                     <Text style={{ fontSize: 11.5, fontWeight: '600', color: '#92400e', marginBottom: 6 }}>
-                      Quick Pick Existing Customer:
+                      {t('billing:payment.quickPickCustomer')}
                     </Text>
                     <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 6 }}>
                       {customers.map((c) => {
@@ -222,7 +229,9 @@ export const PaymentModal = ({
                             </Text>
                             {c.creditBalanceCents > 0 && (
                               <Text style={paymentStyles.customerChipBalance}>
-                                Due {formatCents(c.creditBalanceCents, currencySymbol)}
+                                {t('billing:payment.due', {
+                                  amount: formatCents(c.creditBalanceCents, currencySymbol),
+                                })}
                               </Text>
                             )}
                           </TouchableOpacity>
@@ -240,7 +249,9 @@ export const PaymentModal = ({
                   }}
                 >
                   <MaterialIcons name="people" size={16} color="#004ac6" />
-                  <Text style={paymentStyles.openKhataButtonText}>Open Customer Ledger & Khata Book</Text>
+                  <Text style={paymentStyles.openKhataButtonText}>
+                    {t('billing:payment.openKhata')}
+                  </Text>
                   <MaterialIcons name="chevron-right" size={16} color="#004ac6" />
                 </TouchableOpacity>
               </View>
@@ -250,17 +261,22 @@ export const PaymentModal = ({
               <View style={paymentStyles.customerFormHeader}>
                 <MaterialIcons name="person-outline" size={18} color="#004ac6" />
                 <Text style={paymentStyles.customerFormTitle}>
-                  Customer Details {isCredit ? '(Required *)' : '(Optional for Bill)'}
+                  {t('billing:payment.customerDetails')}{' '}
+                  {isCredit ? t('billing:payment.required') : t('billing:payment.optional')}
                 </Text>
               </View>
 
               <View style={paymentStyles.customerFieldGroup}>
-                <Text style={paymentStyles.customerFieldLabel}>Customer Name {isCredit ? '*' : ''}</Text>
+                <Text style={paymentStyles.customerFieldLabel}>
+                  {isCredit
+                    ? t('billing:payment.customerNameRequired')
+                    : t('billing:payment.customerName')}
+                </Text>
                 <View style={paymentStyles.customerInputWrap}>
                   <MaterialIcons name="person" size={16} color="#94a3b8" style={{ marginRight: 8 }} />
                   <TextInput
                     style={paymentStyles.customerInput}
-                    placeholder="Enter customer full name"
+                    placeholder={t('billing:payment.enterCustomerName')}
                     placeholderTextColor="#94a3b8"
                     value={customerName}
                     onChangeText={setCustomerName}
@@ -269,12 +285,14 @@ export const PaymentModal = ({
               </View>
 
               <View style={paymentStyles.customerFieldGroup}>
-                <Text style={paymentStyles.customerFieldLabel}>Mobile Number (Optional)</Text>
+                <Text style={paymentStyles.customerFieldLabel}>
+                  {t('billing:payment.customerPhone')}
+                </Text>
                 <View style={paymentStyles.customerInputWrap}>
                   <MaterialIcons name="phone" size={16} color="#94a3b8" style={{ marginRight: 8 }} />
                   <TextInput
                     style={paymentStyles.customerInput}
-                    placeholder="Enter customer phone number"
+                    placeholder={t('billing:payment.enterCustomerPhone')}
                     placeholderTextColor="#94a3b8"
                     keyboardType="phone-pad"
                     value={customerPhone}
@@ -297,10 +315,14 @@ export const PaymentModal = ({
             <MaterialIcons name="receipt-long" size={22} color="#ffffff" />
             <Text style={paymentStyles.confirmPaymentText}>
               {isProcessing
-                ? 'Generating Bill...'
+                ? t('billing:payment.generatingBill')
                 : isCredit
-                ? `Confirm Khata Bill (${formatCents(totals.totalCents, currencySymbol)})`
-                : `Confirm & Print Bill (${formatCents(totals.totalCents, currencySymbol)})`}
+                ? t('billing:payment.confirmKhataBill', {
+                    amount: formatCents(totals.totalCents, currencySymbol),
+                  })
+                : t('billing:payment.confirmPrintBill', {
+                    amount: formatCents(totals.totalCents, currencySymbol),
+                  })}
             </Text>
           </TouchableOpacity>
         </KeyboardAvoidingView>

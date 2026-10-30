@@ -4,62 +4,109 @@ import {
   Text,
   TouchableOpacity,
   ScrollView,
+  KeyboardAvoidingView,
+  Platform,
   Alert,
 } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { MaterialIcons } from '@expo/vector-icons';
+import { useTranslation } from 'react-i18next';
+import { useSessionStore } from '@/stores/session-store';
 import { useProductMutation } from '@/hooks/use-product-mutation';
 import { fromCents } from '@/utils/money';
 import {
-  ProductFormInputs,
+  ProductImageSection,
+  BasicInfoSection,
+  PricingInventorySection,
   styles,
 } from '@/components/add-product';
 
 export default function AddProductScreen() {
   const router = useRouter();
+  const { t } = useTranslation(['common', 'products']);
   const { id, scannedSku } = useLocalSearchParams<{ id?: string; scannedSku?: string }>();
-  const { isSubmitting, fetchProduct, saveProduct, deleteProduct } = useProductMutation();
+  const isEdit = Boolean(id);
+  const insets = useSafeAreaInsets();
+  const currencySymbol = useSessionStore((state) => state.currentUser?.currencySymbol ?? '$');
+
+  const { isSubmitting, fetchProduct, checkSkuAvailable, saveProduct, deleteProduct } =
+    useProductMutation();
 
   const [name, setName] = useState('');
   const [sku, setSku] = useState(scannedSku || '');
-  const [price, setPrice] = useState('');
-  const [costPrice, setCostPrice] = useState('');
-  const [stock, setStock] = useState('0');
   const [category, setCategory] = useState('Grocery');
   const [unit, setUnit] = useState('pcs');
+  const [costPrice, setCostPrice] = useState('');
+  const [sellingPrice, setSellingPrice] = useState('');
   const [taxRate, setTaxRate] = useState('8');
+  const [stock, setStock] = useState('');
+  const [lowStock, setLowStock] = useState('5');
+  const [imageUrl, setImageUrl] = useState('');
+  const [error, setError] = useState('');
+
+  const isWeightOrVolume = ['kg', 'g', 'l', 'ml'].includes(unit);
 
   useEffect(() => {
-    if (id) {
+    if (isEdit && id) {
       void fetchProduct(id).then((p) => {
         if (p) {
           setName(p.name);
           setSku(p.sku);
-          setPrice(String(fromCents(p.priceCents)));
-          setCostPrice(String(fromCents(p.costPriceCents)));
-          setStock(String(p.stock));
           setCategory(p.category);
-          setUnit(p.unit);
+          setUnit(p.unit || 'pcs');
+          setCostPrice(String(fromCents(p.costPriceCents)));
+          setSellingPrice(String(fromCents(p.priceCents)));
           setTaxRate(String(p.taxRate));
+          setStock(String(p.stock));
+          setLowStock(String(p.lowStockAlert));
+          setImageUrl(p.image || '');
         }
       });
     }
-  }, [id, fetchProduct]);
+  }, [isEdit, id, fetchProduct]);
 
-  const handleSave = async () => {
-    if (!name.trim() || !sku.trim() || !price.trim()) {
-      Alert.alert('Validation Error', 'Name, SKU, and Selling Price are required.');
+  const handleSaveProduct = async () => {
+    setError('');
+
+    if (!name.trim() || !sku.trim() || !category || !sellingPrice.trim() || !stock.trim()) {
+      setError(t('products:add.requiredFields'));
       return;
     }
 
-    const numericPrice = parseFloat(price);
-    const numericStock = parseFloat(stock) || 0;
-    const numericCostPrice = parseFloat(costPrice) || 0;
-    const numericTaxRate = parseFloat(taxRate) || 0;
+    const priceNum = parseFloat(sellingPrice);
+    if (isNaN(priceNum) || priceNum <= 0) {
+      setError(t('products:add.invalidPrice', { symbol: currencySymbol }));
+      return;
+    }
 
-    if (isNaN(numericPrice) || numericPrice < 0) {
-      Alert.alert('Validation Error', 'Selling price must be a valid positive number.');
+    const costNum = costPrice.trim() ? parseFloat(costPrice) : 0;
+    if (isNaN(costNum) || costNum < 0) {
+      setError(t('products:add.invalidCost'));
+      return;
+    }
+
+    const stockNum = parseFloat(stock);
+    if (isNaN(stockNum) || stockNum < 0) {
+      setError(t('products:add.invalidStock'));
+      return;
+    }
+
+    const lowStockNum = lowStock.trim() ? parseFloat(lowStock) : (isWeightOrVolume ? 2.0 : 5);
+    if (isNaN(lowStockNum) || lowStockNum < 0) {
+      setError(t('products:add.invalidLowStock'));
+      return;
+    }
+
+    const taxRateNum = taxRate.trim() ? parseFloat(taxRate) : 8;
+    if (isNaN(taxRateNum) || taxRateNum < 0 || taxRateNum > 100) {
+      setError(t('products:add.invalidTaxRate'));
+      return;
+    }
+
+    const isAvailable = await checkSkuAvailable(sku.trim(), id);
+    if (!isAvailable) {
+      setError(t('products:add.skuExists'));
       return;
     }
 
@@ -68,82 +115,145 @@ export default function AddProductScreen() {
         id,
         name: name.trim(),
         sku: sku.trim().toUpperCase(),
-        price: numericPrice,
-        costPrice: numericCostPrice,
-        stock: numericStock,
         category,
-        unit: unit.trim() || 'pcs',
-        taxRate: numericTaxRate,
+        unit,
+        price: priceNum,
+        costPrice: costNum,
+        taxRate: taxRateNum,
+        stock: stockNum,
+        lowStockAlert: lowStockNum,
+        image: imageUrl.trim() || null,
       });
 
-      Alert.alert('Success', `Product ${name} saved successfully.`);
-      router.back();
+      if (router.canGoBack()) {
+        router.back();
+      } else {
+        router.replace('/(tabs)/products');
+      }
     } catch {
-      Alert.alert('Error', 'Failed to save product in local database.');
+      setError(t('products:add.saveFailed'));
     }
   };
 
-  const handleDelete = () => {
+  const performDelete = async () => {
     if (!id) return;
-    Alert.alert('Delete Product', `Are you sure you want to delete ${name}?`, [
-      { text: 'Cancel', style: 'cancel' },
-      {
-        text: 'Delete',
-        style: 'destructive',
-        onPress: async () => {
-          await deleteProduct(id);
-          router.back();
-        },
-      },
-    ]);
+    try {
+      await deleteProduct(id);
+      if (router.canGoBack()) {
+        router.back();
+      } else {
+        router.replace('/(tabs)/products');
+      }
+    } catch {
+      setError(t('products:add.deleteFailed'));
+    }
+  };
+
+  const handleDeleteProduct = () => {
+    if (!isEdit || !id) return;
+
+    if (Platform.OS === 'web') {
+      if (window.confirm(t('products:add.confirmDeleteMessage', { name }))) {
+        void performDelete();
+      }
+    } else {
+      Alert.alert(
+        t('products:add.confirmDeleteTitle'),
+        t('products:add.confirmDeleteMessage', { name }),
+        [
+          { text: t('common:actions.cancel'), style: 'cancel' },
+          { text: t('common:actions.delete'), style: 'destructive', onPress: () => void performDelete() },
+        ]
+      );
+    }
   };
 
   return (
-    <SafeAreaView style={styles.container} edges={['top']}>
+    <SafeAreaView style={styles.safeContainer} edges={['top']}>
       <View style={styles.header}>
-        <TouchableOpacity onPress={() => router.back()}>
-          <MaterialIcons name="arrow-back" size={24} color="#131b2e" />
+        <TouchableOpacity style={styles.headerIconButton} onPress={() => router.back()}>
+          <MaterialIcons name="close" size={24} color="#004ac6" />
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>{id ? 'Edit Product' : 'New Product'}</Text>
-        {id ? (
-          <TouchableOpacity style={styles.deleteBtn} onPress={handleDelete}>
-            <MaterialIcons name="delete-outline" size={24} color="#ba1a1a" />
+        <Text style={styles.headerTitle}>
+          {isEdit ? t('products:add.titleEdit') : t('products:add.titleAdd')}
+        </Text>
+        {isEdit ? (
+          <TouchableOpacity style={styles.headerIconButton} onPress={handleDeleteProduct}>
+            <MaterialIcons name="delete" size={24} color="#ba1a1a" />
           </TouchableOpacity>
         ) : (
-          <View style={{ width: 24 }} />
+          <View style={{ width: 40 }} />
         )}
       </View>
 
-      <ScrollView contentContainerStyle={styles.scrollContent}>
-        <ProductFormInputs
-          name={name}
-          setName={setName}
-          sku={sku}
-          setSku={setSku}
-          price={price}
-          setPrice={setPrice}
-          costPrice={costPrice}
-          setCostPrice={setCostPrice}
-          stock={stock}
-          setStock={setStock}
-          category={category}
-          setCategory={setCategory}
-          unit={unit}
-          setUnit={setUnit}
-          taxRate={taxRate}
-          setTaxRate={setTaxRate}
-        />
+      <KeyboardAvoidingView
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        style={styles.keyboardContainer}
+      >
+        <ScrollView contentContainerStyle={styles.formScroll} showsVerticalScrollIndicator={false}>
+          {error ? (
+            <View style={styles.errorBanner}>
+              <MaterialIcons name="error-outline" size={18} color="#ba1a1a" />
+              <Text style={styles.errorText}>{error}</Text>
+            </View>
+          ) : null}
 
-        <TouchableOpacity
-          style={[styles.submitBtn, isSubmitting && { opacity: 0.6 }]}
-          disabled={isSubmitting}
-          onPress={handleSave}
-        >
-          <Text style={styles.submitBtnText}>
-            {isSubmitting ? 'Saving...' : id ? 'Update Product' : 'Create Product'}
-          </Text>
-        </TouchableOpacity>
-      </ScrollView>
+          <ProductImageSection
+            imageUrl={imageUrl}
+            onChangeImageUrl={setImageUrl}
+          />
+
+          <BasicInfoSection
+            name={name}
+            setName={setName}
+            sku={sku}
+            setSku={setSku}
+            category={category}
+            setCategory={setCategory}
+            onScanPress={() => router.push({ pathname: '/scanner', params: { mode: 'add_product' } })}
+          />
+
+          <PricingInventorySection
+            unit={unit}
+            setUnit={setUnit}
+            costPrice={costPrice}
+            setCostPrice={setCostPrice}
+            sellingPrice={sellingPrice}
+            setSellingPrice={setSellingPrice}
+            taxRate={taxRate}
+            setTaxRate={setTaxRate}
+            stock={stock}
+            setStock={setStock}
+            lowStock={lowStock}
+            setLowStock={setLowStock}
+            currencySymbol={currencySymbol}
+          />
+        </ScrollView>
+      </KeyboardAvoidingView>
+
+      <View style={[styles.bottomBar, { paddingBottom: insets.bottom + 16 }]}>
+        <View style={{ flexDirection: 'row', gap: 12 }}>
+          {isEdit && (
+            <TouchableOpacity
+              style={[styles.saveButton, { backgroundColor: '#ba1a1a', flex: 1 }]}
+              onPress={handleDeleteProduct}
+            >
+              <MaterialIcons name="delete" size={20} color="#ffffff" />
+              <Text style={styles.saveButtonText}>{t('common:actions.delete')}</Text>
+            </TouchableOpacity>
+          )}
+          <TouchableOpacity
+            style={[styles.saveButton, { flex: isEdit ? 2 : 1 }, isSubmitting && { opacity: 0.7 }]}
+            onPress={() => void handleSaveProduct()}
+            disabled={isSubmitting}
+          >
+            <MaterialIcons name="save" size={20} color="#ffffff" />
+            <Text style={styles.saveButtonText}>
+              {isSubmitting ? t('products:add.saving') : isEdit ? t('products:add.saveChanges') : t('products:add.save')}
+            </Text>
+          </TouchableOpacity>
+        </View>
+      </View>
     </SafeAreaView>
   );
 }

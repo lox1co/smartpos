@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback, useMemo } from 'react';
 import { Alert } from 'react-native';
 import { useSessionStore } from '@/stores/session-store';
+import { useDataEventStore } from '@/stores/data-event-store';
 import {
   listTransactionsByDateRange,
   getTransactionReportSummary,
@@ -53,6 +54,7 @@ export const useReports = () => {
   const shopName = useSessionStore((state) => state.currentUser?.shopName ?? 'SmartPOS Store');
   const gstNumber = useSessionStore((state) => state.currentUser?.gstNumber);
   const currencySymbol = useSessionStore((state) => state.currentUser?.currencySymbol ?? '$');
+  const transactionsVersion = useDataEventStore((state) => state.transactionsVersion);
 
   const [rangeId, setRangeId] = useState<RangeId>('today');
   const [loading, setLoading] = useState(false);
@@ -104,7 +106,7 @@ export const useReports = () => {
     return () => {
       isMounted = false;
     };
-  }, [storeId, start, end]);
+  }, [storeId, start, end, transactionsVersion]);
 
   const summary = useMemo(() => {
     const cgstCents = Math.round(summaryData.taxCents / 2);
@@ -115,87 +117,69 @@ export const useReports = () => {
       subtotalCents: summaryData.subtotalCents,
       discountCents: summaryData.discountCents,
       taxCents: summaryData.taxCents,
-      cgstCents,
-      sgstCents,
       creditCents: summaryData.creditCents,
       orders: summaryData.orders,
+      cgstCents,
+      sgstCents,
       byMethod: summaryData.byMethod,
     };
   }, [summaryData]);
 
-  const rangeLabel = `${ymd(start)} → ${ymd(end)}`;
+  const rangeLabel = useMemo(() => {
+    return RANGES.find((r) => r.id === rangeId)?.label ?? 'Report';
+  }, [rangeId]);
 
-  const buildCsv = () => {
-    const header = [
+  const buildCsv = (): string => {
+    const headers = [
       'Invoice',
       'Date',
-      'Customer',
-      'Payment',
+      'Payment Method',
       'Status',
+      'Customer',
+      'Phone',
       'Subtotal',
       'Discount',
       'Tax',
-      'CGST',
-      'SGST',
       'Total',
     ];
-    const rows: (string | number)[][] = [header];
-    txns.forEach((t) => {
-      const cgst = Math.round(t.taxCents / 2);
-      const sgst = t.taxCents - cgst;
-      rows.push([
-        t.invoiceNumber,
-        new Date(t.createdAt).toLocaleString(),
-        t.customerName || '',
-        t.paymentMethod,
-        t.paymentStatus,
-        fromCents(t.subtotalCents).toFixed(2),
-        fromCents(t.discountCents).toFixed(2),
-        fromCents(t.taxCents).toFixed(2),
-        fromCents(cgst).toFixed(2),
-        fromCents(sgst).toFixed(2),
-        fromCents(t.totalCents).toFixed(2),
-      ]);
-    });
-    rows.push([]);
-    rows.push([
-      'TOTALS',
-      '',
-      '',
-      '',
-      '',
-      fromCents(summary.subtotalCents).toFixed(2),
-      fromCents(summary.discountCents).toFixed(2),
-      fromCents(summary.taxCents).toFixed(2),
-      fromCents(summary.cgstCents).toFixed(2),
-      fromCents(summary.sgstCents).toFixed(2),
-      fromCents(summary.salesCents).toFixed(2),
+    const rows = txns.map((t) => [
+      t.invoiceNumber,
+      new Date(t.createdAt).toISOString(),
+      t.paymentMethod,
+      t.paymentStatus,
+      t.customerName || '',
+      t.customerPhone || '',
+      fromCents(t.subtotalCents).toFixed(2),
+      fromCents(t.discountCents).toFixed(2),
+      fromCents(t.taxCents).toFixed(2),
+      fromCents(t.totalCents).toFixed(2),
     ]);
-    return toCsv(rows);
+    return toCsv([headers, ...rows]);
   };
 
-  const buildHtml = () => {
-    const methodRows = Object.entries(summary.byMethod)
+  const buildHtml = (): string => {
+    const txnRows = txns
       .map(
-        ([m, v]) =>
-          `<tr><td>${m}</td><td class="num">${v.count}</td><td class="num">${formatCents(v.amountCents, currencySymbol)}</td></tr>`,
+        (t) =>
+          `<tr>
+            <td>${t.invoiceNumber}</td>
+            <td>${new Date(t.createdAt).toLocaleDateString()}</td>
+            <td>${t.paymentMethod}</td>
+            <td class="num">${formatCents(Math.round(t.taxCents / 2), currencySymbol)}</td>
+            <td class="num">${formatCents(t.taxCents - Math.round(t.taxCents / 2), currencySymbol)}</td>
+            <td class="num"><strong>${formatCents(t.totalCents, currencySymbol)}</strong></td>
+          </tr>`
       )
       .join('');
-    const txnRows = txns
-      .map((t) => {
-        const cgst = Math.round(t.taxCents / 2);
-        const sgst = t.taxCents - cgst;
-        return `<tr>
-          <td>${t.invoiceNumber}</td>
-          <td>${new Date(t.createdAt).toLocaleString()}</td>
-          <td>${t.paymentMethod}${t.paymentStatus !== 'PAID' ? ` (${t.paymentStatus})` : ''}</td>
-          <td class="num">${formatCents(cgst, currencySymbol)}</td>
-          <td class="num">${formatCents(sgst, currencySymbol)}</td>
-          <td class="num">${formatCents(t.totalCents, currencySymbol)}</td>
-        </tr>`;
-      })
+
+    const methodRows = Object.entries(summary.byMethod)
+      .map(
+        ([method, stats]) =>
+          `<tr><td>${method}</td><td class="num">${stats.count}</td><td class="num">${formatCents(stats.amountCents, currencySymbol)}</td></tr>`
+      )
       .join('');
-    return `<!DOCTYPE html><html><head><meta charset="utf-8" />
+
+    return `<!DOCTYPE html><html><head><meta charset="utf-8"/><title>Sales Report</title>
       <style>
         body { font-family: -apple-system, Roboto, Arial, sans-serif; color: #111; padding: 24px; }
         h1 { font-size: 20px; margin: 0; }

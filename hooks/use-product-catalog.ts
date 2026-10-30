@@ -2,9 +2,11 @@ import { useState, useEffect, useCallback } from 'react';
 import { listProducts } from '@/db/repositories/product-repository';
 import { ProductSelect } from '@/db/schema/products';
 import { useSessionStore } from '@/stores/session-store';
+import { useDataEventStore } from '@/stores/data-event-store';
 
 export const useProductCatalog = (category?: string, query?: string) => {
   const storeId = useSessionStore((state) => state.currentUser?.storeId ?? 'DEMO-1001');
+  const productsVersion = useDataEventStore((state) => state.productsVersion);
   const [products, setProducts] = useState<ProductSelect[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
@@ -36,7 +38,7 @@ export const useProductCatalog = (category?: string, query?: string) => {
     return () => {
       isMounted = false;
     };
-  }, [storeId, category, query]);
+  }, [storeId, category, query, productsVersion]);
 
   return {
     products,
