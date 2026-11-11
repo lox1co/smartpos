@@ -1,6 +1,6 @@
 # Expo HAS CHANGED
 
-Read the exact versioned docs at https://docs.expo.dev/versions/v57.0.0/ before writing any code.
+Read the exact versioned docs at https://docs.expo.dev/versions/v58.0.0/ before writing any code.
 
 # Reglas del proyecto SmartPOS
 
@@ -18,9 +18,9 @@ Estas reglas son obligatorias para todo el proyecto (app móvil y backend).
 
 ### Documentación oficial (consultar antes de escribir código)
 
-- Expo SDK 57: https://docs.expo.dev/versions/v57.0.0/
+- Expo SDK 57: https://docs.expo.dev/versions/v58.0.0/
 - Expo Router: https://docs.expo.dev/router/introduction/
-- Expo SQLite: https://docs.expo.dev/versions/v57.0.0/sdk/sqlite/
+- Expo SQLite: https://docs.expo.dev/versions/v58.0.0/sdk/sqlite/
 - React Native: https://reactnative.dev/docs/getting-started
 - Zustand: https://zustand.docs.pmnd.rs/
 - Zod: https://zod.dev/
