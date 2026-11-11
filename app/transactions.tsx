@@ -150,7 +150,7 @@ export default function TransactionsScreen() {
               <MaterialIcons name="receipt-long" size={48} color="#c3c6d7" />
               <Text style={styles.emptyText}>{t('transactions:empty.noTransactions')}</Text>
             </View>
-          ) : null
+          ) : undefined
         }
       />
 

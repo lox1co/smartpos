@@ -138,7 +138,7 @@ export default function CustomersScreen() {
               <MaterialIcons name="people-outline" size={48} color="#c3c6d7" />
               <Text style={styles.emptyText}>{t('customers:empty.noCustomers')}</Text>
             </View>
-          ) : null
+          ) : undefined
         }
       />
 

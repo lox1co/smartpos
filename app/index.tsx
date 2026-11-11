@@ -1,20 +1,14 @@
-import React, { useEffect, useState } from 'react';
-import {
-  StyleSheet,
-  View,
-  Text,
-  Animated,
-  Image,
-} from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
-import { StatusBar } from 'expo-status-bar';
-import { useRouter } from 'expo-router';
-import { useTranslation } from 'react-i18next';
-import { useSessionStore } from '@/stores/session-store';
+import { useSessionStore } from "@/stores/session-store";
+import { useRouter } from "expo-router";
+import { StatusBar } from "expo-status-bar";
+import { useEffect, useState } from "react";
+import { useTranslation } from "react-i18next";
+import { Animated, Image, StyleSheet, Text, View } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 
 export default function SplashScreen() {
   const router = useRouter();
-  const { t } = useTranslation('common');
+  const { t } = useTranslation("common");
 
   const [fadeAnim] = useState(() => new Animated.Value(0));
   const [slideAnim] = useState(() => new Animated.Value(20));
@@ -49,7 +43,7 @@ export default function SplashScreen() {
           duration: 800,
           useNativeDriver: true,
         }),
-      ])
+      ]),
     ).start();
 
     const createDotLoop = (anim: Animated.Value, delay: number) => {
@@ -66,7 +60,7 @@ export default function SplashScreen() {
             duration: 400,
             useNativeDriver: true,
           }),
-        ])
+        ]),
       );
     };
 
@@ -82,7 +76,7 @@ export default function SplashScreen() {
       await minDelay;
       if (cancelled) return;
       const token = useSessionStore.getState().currentUser?.token;
-      router.replace(token ? '/(tabs)/dashboard' : '/login');
+      router.replace(token ? "/(tabs)/dashboard" : "/login");
     };
     void redirect();
 
@@ -92,7 +86,7 @@ export default function SplashScreen() {
   }, [fadeAnim, slideAnim, pulseAnim, dot1Anim, dot2Anim, dot3Anim, router]);
 
   return (
-    <SafeAreaView style={styles.container} edges={['top', 'bottom']}>
+    <SafeAreaView style={styles.container} edges={["top", "bottom"]}>
       <StatusBar style="dark" />
 
       <View style={styles.backgroundContainer} pointerEvents="none">
@@ -118,14 +112,14 @@ export default function SplashScreen() {
           ]}
         >
           <Image
-            source={require('../assets/images/logo.png')}
+            source={require("../assets/images/logo.png")}
             style={styles.logoImage}
             resizeMode="contain"
           />
         </Animated.View>
 
         <Text style={styles.brandTitle}>SmartPOS</Text>
-        <Text style={styles.brandSubtitle}>{t('common:brand.subtitle')}</Text>
+        <Text style={styles.brandSubtitle}>{t("common:brand.subtitle")}</Text>
       </Animated.View>
 
       <View style={styles.footer}>
@@ -134,7 +128,7 @@ export default function SplashScreen() {
           <Animated.View style={[styles.dot, { opacity: dot2Anim }]} />
           <Animated.View style={[styles.dot, { opacity: dot3Anim }]} />
         </View>
-        <Text style={styles.versionText}>v1.0.0 (Expo SDK 57)</Text>
+        <Text style={styles.versionText}>v1.0.0 (Expo SDK 58)</Text>
       </View>
     </SafeAreaView>
   );
@@ -143,49 +137,49 @@ export default function SplashScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#ffffff',
-    justifyContent: 'space-between',
-    alignItems: 'center',
+    backgroundColor: "#ffffff",
+    justifyContent: "space-between",
+    alignItems: "center",
   },
   backgroundContainer: {
     ...StyleSheet.absoluteFill,
-    overflow: 'hidden',
+    overflow: "hidden",
   },
   glowTopRight: {
-    position: 'absolute',
+    position: "absolute",
     top: -100,
     right: -100,
     width: 280,
     height: 280,
     borderRadius: 140,
-    backgroundColor: '#e0e7ff',
+    backgroundColor: "#e0e7ff",
     opacity: 0.6,
   },
   glowBottomLeft: {
-    position: 'absolute',
+    position: "absolute",
     bottom: -80,
     left: -80,
     width: 260,
     height: 260,
     borderRadius: 130,
-    backgroundColor: '#ede9fe',
+    backgroundColor: "#ede9fe",
     opacity: 0.6,
   },
   mainContent: {
     flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
+    justifyContent: "center",
+    alignItems: "center",
     paddingHorizontal: 24,
   },
   logoCard: {
     width: 110,
     height: 110,
     borderRadius: 28,
-    backgroundColor: '#f8f9ff',
-    justifyContent: 'center',
-    alignItems: 'center',
+    backgroundColor: "#f8f9ff",
+    justifyContent: "center",
+    alignItems: "center",
     marginBottom: 20,
-    shadowColor: '#004fe6',
+    shadowColor: "#004fe6",
     shadowOffset: { width: 0, height: 8 },
     shadowOpacity: 0.12,
     shadowRadius: 16,
@@ -197,34 +191,34 @@ const styles = StyleSheet.create({
   },
   brandTitle: {
     fontSize: 28,
-    fontWeight: '800',
-    color: '#131b2e',
+    fontWeight: "800",
+    color: "#131b2e",
     letterSpacing: -0.5,
   },
   brandSubtitle: {
     fontSize: 14,
-    color: '#737686',
+    color: "#737686",
     marginTop: 6,
-    fontWeight: '500',
+    fontWeight: "500",
   },
   footer: {
-    alignItems: 'center',
+    alignItems: "center",
     paddingBottom: 24,
     gap: 12,
   },
   dotsContainer: {
-    flexDirection: 'row',
+    flexDirection: "row",
     gap: 6,
   },
   dot: {
     width: 7,
     height: 7,
     borderRadius: 3.5,
-    backgroundColor: '#004fe6',
+    backgroundColor: "#004fe6",
   },
   versionText: {
     fontSize: 12,
-    color: '#94a3b8',
-    fontWeight: '500',
+    color: "#94a3b8",
+    fontWeight: "500",
   },
 });

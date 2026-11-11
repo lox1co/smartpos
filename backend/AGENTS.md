@@ -11,14 +11,14 @@ Estas reglas son obligatorias para todo el proyecto (app móvil y backend).
 | Área                | Tecnología                        |
 | ------------------- | --------------------------------- |
 | Lenguaje            | TypeScript (strict)               |
-| Framework           | React Native con Expo SDK 57      |
+| Framework           | React Native con Expo SDK 58      |
 | Estado              | Zustand                           |
 | Validación          | Zod                               |
 | Base de datos local | Drizzle ORM (SQLite, expo-sqlite) |
 
 ### Documentación oficial (consultar antes de escribir código)
 
-- Expo SDK 57: https://docs.expo.dev/versions/v57.0.0/
+- Expo SDK 58: https://docs.expo.dev/versions/v57.0.0/
 - Expo Router: https://docs.expo.dev/router/introduction/
 - Expo SQLite: https://docs.expo.dev/versions/v57.0.0/sdk/sqlite/
 - React Native: https://reactnative.dev/docs/getting-started
@@ -84,7 +84,7 @@ types/                      Tipos compartidos globales no inferibles (< 400 lín
 Para garantizar desacoplamiento estricto y evitar ciclos de dependencias o fugas de responsabilidades, la jerarquía de imports permitida es unidireccional:
 
 ```
-[ app/ (Rutas) ] 
+[ app/ (Rutas) ]
        │
        ▼
 [ components/ ] ──► [ hooks/ ]
@@ -104,17 +104,17 @@ Para garantizar desacoplamiento estricto y evitar ciclos de dependencias o fugas
 
 ### Reglas estrictas de importación por capa:
 
-| Capa | Qué PUEDE importar | Qué TIENE PROHIBIDO importar |
-| :--- | :--- | :--- |
-| **`app/` (Pantallas)** | `components/`, `hooks/`, `stores/`, `constants/`, `types/` | `db/repositories/`, `db/client.ts`, llamadas HTTP directas (`fetch`/`axios`). |
-| **`components/ui/` (Design System)** | React Native, `constants/` (tokens), `utils/` | `stores/`, `db/`, `hooks/` de negocio, `services/`. UI pura y agnóstica. Prohibido crear componentes especulativos sin uso real existente. |
-| **`components/<feature>/`** | `components/ui/`, `hooks/`, `stores/`, `schemas/`, `constants/` | `db/repositories/`, `db/client.ts`, llamadas HTTP directas. |
-| **`hooks/` (Presentación / Dominio)** | `stores/`, `db/repositories/`, `services/`, `schemas/`, `utils/`, `constants/` | `components/`, `app/`. |
-| **`stores/` (Zustand UI State)** | `schemas/`, `utils/`, `constants/`, `types/` | `components/`, `app/`, `db/repositories/`, `db/client.ts`. |
-| **`services/` (Sync / Red / Hardware)** | `db/repositories/`, `schemas/`, `utils/`, `constants/`, `types/` | `components/`, `app/`, UI stores. |
-| **`db/repositories/` (Datos)** | `db/client.ts`, `db/schema/`, `utils/money.ts`, `types/` | `components/`, `hooks/`, `stores/`, `app/`. |
-| **`db/schema/` y `db/client.ts`** | Drizzle ORM, `expo-sqlite` | Cualquier módulo fuera de `db/`. |
-| **`schemas/`, `utils/`, `constants/`** | Zod, bibliotecas externas utilitarias | `db/`, `stores/`, `hooks/`, `components/`, `app/`. |
+| Capa                                    | Qué PUEDE importar                                                             | Qué TIENE PROHIBIDO importar                                                                                                               |
+| :-------------------------------------- | :----------------------------------------------------------------------------- | :----------------------------------------------------------------------------------------------------------------------------------------- |
+| **`app/` (Pantallas)**                  | `components/`, `hooks/`, `stores/`, `constants/`, `types/`                     | `db/repositories/`, `db/client.ts`, llamadas HTTP directas (`fetch`/`axios`).                                                              |
+| **`components/ui/` (Design System)**    | React Native, `constants/` (tokens), `utils/`                                  | `stores/`, `db/`, `hooks/` de negocio, `services/`. UI pura y agnóstica. Prohibido crear componentes especulativos sin uso real existente. |
+| **`components/<feature>/`**             | `components/ui/`, `hooks/`, `stores/`, `schemas/`, `constants/`                | `db/repositories/`, `db/client.ts`, llamadas HTTP directas.                                                                                |
+| **`hooks/` (Presentación / Dominio)**   | `stores/`, `db/repositories/`, `services/`, `schemas/`, `utils/`, `constants/` | `components/`, `app/`.                                                                                                                     |
+| **`stores/` (Zustand UI State)**        | `schemas/`, `utils/`, `constants/`, `types/`                                   | `components/`, `app/`, `db/repositories/`, `db/client.ts`.                                                                                 |
+| **`services/` (Sync / Red / Hardware)** | `db/repositories/`, `schemas/`, `utils/`, `constants/`, `types/`               | `components/`, `app/`, UI stores.                                                                                                          |
+| **`db/repositories/` (Datos)**          | `db/client.ts`, `db/schema/`, `utils/money.ts`, `types/`                       | `components/`, `hooks/`, `stores/`, `app/`.                                                                                                |
+| **`db/schema/` y `db/client.ts`**       | Drizzle ORM, `expo-sqlite`                                                     | Cualquier módulo fuera de `db/`.                                                                                                           |
+| **`schemas/`, `utils/`, `constants/`**  | Zod, bibliotecas externas utilitarias                                          | `db/`, `stores/`, `hooks/`, `components/`, `app/`.                                                                                         |
 
 ## Reglas Financieras y de Dominio POS (Decisiones de Arquitectura)
 
@@ -124,7 +124,7 @@ Para garantizar desacoplamiento estricto y evitar ciclos de dependencias o fugas
   - Las conversiones y formateos visuales se realizan exclusivamente mediante utilidades puras en `utils/money.ts` (`toCents`, `fromCents`, `formatCents`).
 - **Resolución de Conflictos Offline e Inventario**:
   - Toda venta offline es autoritativa localmente con identificador único UUIDv4 (`client_id`).
-  - Si una sincronización offline genera inventario menor a cero, se acepta la transacción en el servidor permitiendo saldo negativo temporal y emitiendo una notificación de *backorder* para auditoría, sin rechazar ni anular tickets ya entregados al cliente.
+  - Si una sincronización offline genera inventario menor a cero, se acepta la transacción en el servidor permitiendo saldo negativo temporal y emitiendo una notificación de _backorder_ para auditoría, sin rechazar ni anular tickets ya entregados al cliente.
 
 ## Offline-first y Base de Datos Local
 

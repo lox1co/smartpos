@@ -6,7 +6,7 @@ real printing/PDF, cash-tender/change, and the offline sales queue.
 
 > **Architecture at a glance**
 >
-> - **Client**: Expo SDK 57 app (`loxico/`), talks to the backend over HTTPS.
+> - **Client**: Expo SDK 58 app (`loxico/`), talks to the backend over HTTPS.
 > - **Backend**: FastAPI + SQLAlchemy (`loxico/backend/`), deployed on Render at
 >   `https://possystem.Loxico.dev` (see `constants/config.ts`).
 > - **Database**: PostgreSQL on Render. (Local dev defaults to MySQL — see the note at the end.)

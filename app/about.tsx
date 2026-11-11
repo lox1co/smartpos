@@ -2,12 +2,12 @@ import { MaterialIcons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import { useTranslation } from "react-i18next";
 import {
-  Linking,
-  ScrollView,
-  StyleSheet,
-  Text,
-  TouchableOpacity,
-  View,
+    Linking,
+    ScrollView,
+    StyleSheet,
+    Text,
+    TouchableOpacity,
+    View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
@@ -37,7 +37,7 @@ export default function AboutScreen() {
     {
       icon: "code",
       label: t("support:about.labels.framework"),
-      value: "React Native (Expo SDK 57) & FastAPI",
+      value: "React Native (Expo SDK 58) & FastAPI",
     },
     {
       icon: "storage",

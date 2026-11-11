@@ -11,14 +11,14 @@ Estas reglas son obligatorias para todo el proyecto (app móvil y backend).
 | Área                | Tecnología                        |
 | ------------------- | --------------------------------- |
 | Lenguaje            | TypeScript (strict)               |
-| Framework           | React Native con Expo SDK 57      |
+| Framework           | React Native con Expo SDK 58      |
 | Estado              | Zustand                           |
 | Validación          | Zod                               |
 | Base de datos local | Drizzle ORM (SQLite, expo-sqlite) |
 
 ### Documentación oficial (consultar antes de escribir código)
 
-- Expo SDK 57: https://docs.expo.dev/versions/v58.0.0/
+- Expo SDK 58: https://docs.expo.dev/versions/v58.0.0/
 - Expo Router: https://docs.expo.dev/router/introduction/
 - Expo SQLite: https://docs.expo.dev/versions/v58.0.0/sdk/sqlite/
 - React Native: https://reactnative.dev/docs/getting-started

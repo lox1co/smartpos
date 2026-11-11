@@ -30,18 +30,7 @@ import {
 import { useSignup } from '@/hooks/use-signup';
 
 export default function SignupScreen() {
-<<<<<<< HEAD
-  const router = useRouter();
   const scrollViewRef = useRef<ScrollViewInstance>(null);
-  useEffect(() => {
-    const keyboardDidHideListener = Keyboard.addListener(
-      'keyboardDidHide',
-      () => {
-        scrollViewRef.current?.scrollTo({ y: 0, animated: true });
-      }
-    );
-=======
-  const scrollViewRef = useRef<ScrollView>(null);
   const { t } = useTranslation(['common', 'signup']);
   const {
     router,
@@ -89,7 +78,6 @@ export default function SignupScreen() {
     handleContinue,
     handleBack,
   } = useSignup();
->>>>>>> 0431885dfe71bbbb64d73637331fc1697e59834b
 
   useEffect(() => {
     const keyboardDidHideListener = Keyboard.addListener('keyboardDidHide', () => {

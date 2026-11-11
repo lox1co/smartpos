@@ -42,15 +42,9 @@ export default function TabLayout() {
       <Tabs.Screen
         name="dashboard"
         options={{
-<<<<<<< HEAD
-          title: 'Dashboard',
-          tabBarIcon: ({ color }) => (
-            <MaterialIcons name="dashboard" size={24} color={color as string} />
-=======
           title: t('common:navigation.dashboard'),
           tabBarIcon: ({ color }) => (
-            <MaterialIcons name="dashboard" size={24} color={color} />
->>>>>>> 0431885dfe71bbbb64d73637331fc1697e59834b
+            <MaterialIcons name="dashboard" size={24} color={color as string} />
           ),
         }}
       />

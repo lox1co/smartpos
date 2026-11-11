@@ -112,11 +112,7 @@ export default function ShopGstScreen() {
               <View style={styles.formatInfoBox}>
                 <MaterialIcons name="info-outline" size={15} color="#64748b" />
                 <Text style={styles.formatInfoText}>
-<<<<<<< HEAD
-                  Format: 2-digit State + 10-digit PAN + 1 Entity + {"'Z'"} + 1 Check
-=======
                   {t('shop:gst.formatInfo')}
->>>>>>> 0431885dfe71bbbb64d73637331fc1697e59834b
                 </Text>
               </View>
             </View>
