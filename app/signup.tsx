@@ -6,6 +6,7 @@ import {
   TextInput,
   TouchableOpacity,
   ScrollView,
+  ScrollViewInstance,
   ActivityIndicator,
   Modal,
   Pressable,
@@ -100,7 +101,7 @@ const StepProgress = ({ currentStep }: { currentStep: number }) => {
 
 export default function SignupScreen() {
   const router = useRouter();
-  const scrollViewRef = useRef<ScrollView>(null);
+  const scrollViewRef = useRef<ScrollViewInstance>(null);
   useEffect(() => {
     const keyboardDidHideListener = Keyboard.addListener(
       'keyboardDidHide',

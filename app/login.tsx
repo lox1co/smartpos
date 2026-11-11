@@ -8,6 +8,7 @@ import {
   TouchableOpacity,
   Pressable,
   ScrollView,
+  ScrollViewInstance,
   ActivityIndicator,
   KeyboardAvoidingView,
   Platform,
@@ -62,7 +63,7 @@ const TerminalIllustration = () => (
 
 export default function LoginScreen() {
   const router = useRouter();
-  const scrollViewRef = useRef<ScrollView>(null);
+  const scrollViewRef = useRef<ScrollViewInstance>(null);
 
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');

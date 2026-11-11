@@ -126,7 +126,7 @@ export default function ShopGstScreen() {
               <View style={styles.formatInfoBox}>
                 <MaterialIcons name="info-outline" size={15} color="#64748b" />
                 <Text style={styles.formatInfoText}>
-                  Format: 2-digit State + 10-digit PAN + 1 Entity + 'Z' + 1 Check
+                  Format: 2-digit State + 10-digit PAN + 1 Entity + {"'Z'"} + 1 Check
                 </Text>
               </View>
             </View>

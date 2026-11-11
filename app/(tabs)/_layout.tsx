@@ -54,8 +54,8 @@ export default function TabLayout() {
         name="dashboard"
         options={{
           title: 'Dashboard',
-          tabBarIcon: ({ color, focused }) => (
-            <MaterialIcons name="dashboard" size={24} color={color} />
+          tabBarIcon: ({ color }) => (
+            <MaterialIcons name="dashboard" size={24} color={color as string} />
           ),
         }}
       />
@@ -64,7 +64,7 @@ export default function TabLayout() {
         options={{
           title: 'Billing',
           tabBarIcon: ({ color }) => (
-            <MaterialIcons name="point-of-sale" size={24} color={color} />
+            <MaterialIcons name="point-of-sale" size={24} color={color as string} />
           ),
         }}
       />
@@ -73,7 +73,7 @@ export default function TabLayout() {
         options={{
           title: 'Products',
           tabBarIcon: ({ color }) => (
-            <MaterialIcons name="inventory" size={24} color={color} />
+            <MaterialIcons name="inventory" size={24} color={color as string} />
           ),
         }}
       />
@@ -82,7 +82,7 @@ export default function TabLayout() {
         options={{
           title: 'Inventory',
           tabBarIcon: ({ color }) => (
-            <MaterialIcons name="reorder" size={24} color={color} />
+            <MaterialIcons name="reorder" size={24} color={color as string} />
           ),
         }}
       />
@@ -91,7 +91,7 @@ export default function TabLayout() {
         options={{
           title: 'Profile',
           tabBarIcon: ({ color }) => (
-            <MaterialIcons name="person" size={24} color={color} />
+            <MaterialIcons name="person" size={24} color={color as string} />
           ),
         }}
       />
