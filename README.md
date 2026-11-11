@@ -39,7 +39,7 @@ Built with **React Native (Expo SDK 57)** for cross-platform mobile and web, bac
 
 - **Excel & CSV Import**: Bulk add products with SheetJS (`xlsx`) and `papaparse`.
 - **Download Template / Catalog**: Pre-built Excel template download with data validations and support for **`Image URL`**.
-- **Wireless Barcode Scanning Guide**: Complete guide on preparing Excel sheets using your smartphone or handheld scanner: [BULK_IMPORT_GUIDE.md](file:///d:/zynocraft/POS/BULK_IMPORT_GUIDE.md).
+- **Wireless Barcode Scanning Guide**: Complete guide on preparing Excel sheets using your smartphone or handheld scanner: [BULK_IMPORT_GUIDE.md](file:///d:/Loxico/POS/BULK_IMPORT_GUIDE.md).
 
 ### 📒 Customer Khata Book (Udhaar / Credit Ledger)
 
@@ -211,7 +211,7 @@ loxico/
 Configure the backend server URL for the client:
 
 ```typescript
-export const API_BASE_URL = "https://possystem.zynocraftx.dev";
+export const API_BASE_URL = "https://smartpos.loxcio.dev";
 ```
 
 ### Backend Environment Variables

@@ -1,0 +1,125 @@
+import { StyleSheet } from 'react-native';
+
+export const stepStyles = StyleSheet.create({
+  stepProgressContainer: {
+    width: '100%',
+    paddingVertical: 8,
+    marginBottom: 8,
+  },
+  stepLinesRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    position: 'relative',
+    width: '100%',
+  },
+  stepLineBg: {
+    position: 'absolute',
+    left: '8%',
+    right: '8%',
+    height: 2,
+    backgroundColor: '#e2e8f0',
+    top: 14,
+    zIndex: 1,
+  },
+  stepLineActive: {
+    position: 'absolute',
+    left: '8%',
+    height: 2,
+    backgroundColor: '#2563eb',
+    top: 14,
+    zIndex: 2,
+  },
+  stepCircleWrapper: {
+    alignItems: 'center',
+    zIndex: 3,
+    width: '18%',
+  },
+  stepCircle: {
+    width: 28,
+    height: 28,
+    borderRadius: 14,
+    backgroundColor: '#f1f5f9',
+    borderWidth: 2,
+    borderColor: '#e2e8f0',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  stepCircleActive: {
+    borderColor: '#2563eb',
+    backgroundColor: '#ffffff',
+  },
+  stepCircleCompleted: {
+    backgroundColor: '#2563eb',
+    borderColor: '#2563eb',
+  },
+  stepCircleText: {
+    fontSize: 11,
+    fontWeight: '700',
+    color: '#64748b',
+  },
+  stepCircleTextActive: {
+    color: '#2563eb',
+  },
+  stepCircleTextCompleted: {
+    color: '#ffffff',
+  },
+  stepLabel: {
+    fontSize: 10,
+    color: '#64748b',
+    textAlign: 'center',
+    marginTop: 6,
+    lineHeight: 12,
+    fontWeight: '600',
+  },
+  stepLabelActive: {
+    color: '#2563eb',
+    fontWeight: '700',
+  },
+  stepLabelCompleted: {
+    color: '#0f172a',
+  },
+  successBlock: {
+    alignItems: 'center',
+    paddingVertical: 16,
+  },
+  successIconOuter: {
+    width: 80,
+    height: 80,
+    borderRadius: 40,
+    backgroundColor: '#dcfce7',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 20,
+  },
+  successIconInner: {
+    width: 64,
+    height: 64,
+    borderRadius: 32,
+    backgroundColor: '#16a34a',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  successTitle: {
+    fontSize: 22,
+    fontWeight: '800',
+    color: '#0f172a',
+    marginTop: 8,
+    marginBottom: 8,
+    textAlign: 'center',
+  },
+  successSubtitle: {
+    fontSize: 14,
+    color: '#475569',
+    textAlign: 'center',
+    lineHeight: 20,
+    marginBottom: 4,
+  },
+  successMeta: {
+    fontSize: 13,
+    color: '#64748b',
+    textAlign: 'center',
+    lineHeight: 18,
+    marginTop: 12,
+  },
+});

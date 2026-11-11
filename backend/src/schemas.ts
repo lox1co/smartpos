@@ -2,6 +2,8 @@ import { z } from "zod";
 
 const optionalString = z.string().trim().nullable().optional();
 const decimal = z.coerce.number().finite();
+export const currencyCodeSchema = z.string().trim().toUpperCase().regex(/^[A-Z]{3}$/);
+export const currencySymbolSchema = z.string().trim().min(1).max(8);
 const newPassword = z
   .string()
   .min(6)
@@ -43,6 +45,8 @@ export const storeUpdateSchema = z.object({
   address: optionalString,
   tax_enabled: z.boolean().optional(),
   tax_rate: decimal.min(0).max(100).optional(),
+  currency_code: currencyCodeSchema.optional(),
+  currency_symbol: currencySymbolSchema.optional(),
 });
 
 export const userUpdateSchema = z.object({
@@ -70,6 +74,7 @@ export const productUpdateSchema = productSchema.partial();
 export const bulkProductsSchema = z.object({ products: z.array(productSchema).max(1000) });
 
 export const checkoutSchema = z.object({
+  invoice_number: optionalString,
   subtotal: decimal,
   discount: decimal,
   tax: decimal,
@@ -78,8 +83,17 @@ export const checkoutSchema = z.object({
   payment_status: z.string().trim().min(1).max(50).default("PAID"),
   customer_name: optionalString,
   customer_phone: optionalString,
+  created_at: optionalString,
   items: z
-    .array(z.object({ product_id: z.coerce.number().int().positive(), quantity: decimal.positive(), price: decimal }))
+    .array(
+      z.object({
+        product_id: z.coerce.number().int().positive().nullable().optional(),
+        product_name: optionalString,
+        sku: optionalString,
+        quantity: decimal.positive(),
+        price: decimal,
+      }),
+    )
     .min(1)
     .max(500),
 });

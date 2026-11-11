@@ -57,9 +57,10 @@ function serializeTransaction(
 transactionsRouter.post("/checkout", async (request, response) => {
   const input = parse(checkoutSchema, request.body);
   const storeId = request.auth!.storeId;
-  const instant = new Date();
-  const day = businessDate(instant).replaceAll("-", "");
-  const now = businessDateTime(instant);
+  const instant = input.created_at ? new Date(input.created_at) : new Date();
+  const validInstant = Number.isNaN(instant.getTime()) ? new Date() : instant;
+  const day = businessDate(validInstant).replaceAll("-", "");
+  const now = Number.isNaN(instant.getTime()) ? businessDateTime(validInstant) : validInstant;
   const prefix = `INV-${day}-`;
   const normalizedName = input.customer_name?.trim() || "";
   const normalizedPhone = input.customer_phone?.trim() || "";
@@ -67,15 +68,31 @@ transactionsRouter.post("/checkout", async (request, response) => {
   const result = await prisma.$transaction(
     async (tx) => {
       await tx.$queryRaw`SELECT pg_advisory_xact_lock(hashtext(${storeId}))`;
-      const recentInvoices = await tx.transaction.findMany({
-        where: { storeId, invoiceNumber: { startsWith: prefix } },
-        select: { invoiceNumber: true },
-      });
-      const maxSequence = recentInvoices.reduce((max, item) => {
-        const sequence = Number(item.invoiceNumber.slice(prefix.length));
-        return Number.isSafeInteger(sequence) ? Math.max(max, sequence) : max;
-      }, 0);
-      const invoiceNumber = `${prefix}${String(maxSequence + 1).padStart(4, "0")}`;
+
+      if (input.invoice_number) {
+        const existing = await tx.transaction.findUnique({
+          where: {
+            storeId_invoiceNumber: { storeId, invoiceNumber: input.invoice_number },
+          },
+          include: transactionInclude,
+        });
+        if (existing) {
+          return { transaction: existing, customer: existing.customer };
+        }
+      }
+
+      let invoiceNumber = input.invoice_number;
+      if (!invoiceNumber) {
+        const recentInvoices = await tx.transaction.findMany({
+          where: { storeId, invoiceNumber: { startsWith: prefix } },
+          select: { invoiceNumber: true },
+        });
+        const maxSequence = recentInvoices.reduce((max, item) => {
+          const sequence = Number(item.invoiceNumber.slice(prefix.length));
+          return Number.isSafeInteger(sequence) ? Math.max(max, sequence) : max;
+        }, 0);
+        invoiceNumber = `${prefix}${String(maxSequence + 1).padStart(4, "0")}`;
+      }
 
       const store = await tx.store.findUnique({ where: { id: storeId } });
       if (!store) throw new HttpError(404, "Store not found");
@@ -92,29 +109,37 @@ transactionsRouter.post("/checkout", async (request, response) => {
       let subtotal = new Prisma.Decimal(0);
       let tax = new Prisma.Decimal(0);
       const verifiedItems: {
-        productId: number;
+        productId: number | null;
         productName: string;
         quantity: Prisma.Decimal;
         price: Prisma.Decimal;
       }[] = [];
 
       for (const item of input.items) {
-        const product = await tx.product.findFirst({ where: { id: item.product_id, storeId, isActive: true } });
-        if (!product) throw new HttpError(404, `Product ID ${item.product_id} not found in active store catalog`);
+        let product = item.product_id
+          ? await tx.product.findFirst({ where: { id: item.product_id, storeId, isActive: true } })
+          : null;
+        if (!product && item.sku) {
+          product = await tx.product.findFirst({ where: { sku: item.sku, storeId, isActive: true } });
+        }
         const quantity = new Prisma.Decimal(item.quantity);
-        const reserved = await tx.product.updateMany({
-          where: { id: product.id, storeId, isActive: true, stock: { gte: quantity } },
-          data: { stock: { decrement: quantity } },
-        });
-        if (reserved.count !== 1)
-          throw new HttpError(400, `Insufficient stock for ${product.name}. Available: ${product.stock}`);
+        const price = product ? product.price : new Prisma.Decimal(item.price);
+        const productName = product ? product.name : (item.product_name || "Item");
 
-        const price = product.price;
+        if (product) {
+          await tx.product.update({
+            where: { id: product.id },
+            data: { stock: { decrement: quantity } },
+          });
+        }
+
         const lineSubtotal = price.mul(quantity);
-        const taxRate = store.taxEnabled ? (store.taxRate ?? product.taxRate) : new Prisma.Decimal(0);
+        const taxRate = store.taxEnabled
+          ? (store.taxRate ?? (product ? product.taxRate : new Prisma.Decimal(0)))
+          : new Prisma.Decimal(0);
         subtotal = subtotal.add(lineSubtotal);
         tax = tax.add(lineSubtotal.mul(taxRate).div(100).toDecimalPlaces(2));
-        verifiedItems.push({ productId: product.id, productName: product.name, quantity, price });
+        verifiedItems.push({ productId: product ? product.id : null, productName, quantity, price });
       }
 
       const discount = new Prisma.Decimal(input.discount);

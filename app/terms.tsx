@@ -2,50 +2,52 @@ import React from 'react';
 import { StyleSheet, View, Text, ScrollView, TouchableOpacity } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
+import { useTranslation } from 'react-i18next';
 import { MaterialIcons } from '@expo/vector-icons';
 
-const SECTIONS = [
-  { title: '1. Acceptance of Terms', body: 'By downloading, installing, or using SmartPOS, you agree to be bound by these Terms & Conditions. If you do not agree, please do not use this application.' },
-  { title: '2. License to Use', body: 'kavimaheslabs grants you a limited, non-exclusive, non-transferable, revocable license to use SmartPOS solely for your personal or internal business purposes. You may not copy, modify, distribute, sell, or lease any part of SmartPOS.' },
-  { title: '3. User Responsibilities', body: 'You are responsible for maintaining the confidentiality of your account credentials. You agree not to share your login details with unauthorized persons. You are responsible for all activity that occurs under your account.' },
-  { title: '4. Acceptable Use', body: 'You agree to use SmartPOS only for lawful business purposes. You must not use the application to process fraudulent transactions, to evade taxes, or for any illegal activity.' },
-  { title: '5. Data Accuracy', body: 'You are solely responsible for the accuracy of the data you enter into SmartPOS, including product prices, GST rates, and customer records. kavimaheslabs is not liable for financial or tax errors resulting from incorrect data entry.' },
-  { title: '6. Intellectual Property', body: 'SmartPOS and all its content, features, and functionality are owned by kavimaheslabs and are protected by intellectual property laws. You must not reproduce, duplicate, or exploit any part of the application without express written permission.' },
-  { title: '7. Service Availability', body: 'We strive to provide reliable service but do not guarantee 100% uptime. SmartPOS may occasionally be unavailable due to maintenance or factors beyond our control. The offline-first billing feature mitigates disruption during outages.' },
-  { title: '8. Limitation of Liability', body: 'kavimaheslabs shall not be liable for any indirect, incidental, or consequential damages arising from your use of SmartPOS, including but not limited to loss of revenue, data loss, or business interruption.' },
-  { title: '9. Termination', body: 'We reserve the right to terminate or suspend your account at any time for violations of these Terms. You may also terminate your account by contacting support.' },
-  { title: '10. Governing Law', body: 'These Terms are governed by the laws of India. Any disputes arising from these Terms shall be subject to the exclusive jurisdiction of courts in India.' },
-  { title: '11. Contact', body: 'For questions regarding these Terms, please contact us at zynocraftx@gmail.com.' },
-];
+const TERMS_SECTION_KEYS = [
+  { title: 'support:terms.sections.s1Title', body: 'support:terms.sections.s1Body' },
+  { title: 'support:terms.sections.s2Title', body: 'support:terms.sections.s2Body' },
+  { title: 'support:terms.sections.s3Title', body: 'support:terms.sections.s3Body' },
+  { title: 'support:terms.sections.s4Title', body: 'support:terms.sections.s4Body' },
+  { title: 'support:terms.sections.s5Title', body: 'support:terms.sections.s5Body' },
+  { title: 'support:terms.sections.s6Title', body: 'support:terms.sections.s6Body' },
+  { title: 'support:terms.sections.s7Title', body: 'support:terms.sections.s7Body' },
+  { title: 'support:terms.sections.s8Title', body: 'support:terms.sections.s8Body' },
+  { title: 'support:terms.sections.s9Title', body: 'support:terms.sections.s9Body' },
+  { title: 'support:terms.sections.s10Title', body: 'support:terms.sections.s10Body' },
+  { title: 'support:terms.sections.s11Title', body: 'support:terms.sections.s11Body' },
+] as const;
 
 export default function TermsScreen() {
   const router = useRouter();
+  const { t } = useTranslation(['common', 'support']);
+
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
       <View style={styles.header}>
         <TouchableOpacity onPress={() => router.back()} style={styles.backBtn} activeOpacity={0.7}>
           <MaterialIcons name="arrow-back" size={22} color="#0f172a" />
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>Terms & Conditions</Text>
+        <Text style={styles.headerTitle}>{t('support:terms.title')}</Text>
         <View style={{ width: 38 }} />
       </View>
 
       <ScrollView contentContainerStyle={styles.scroll} showsVerticalScrollIndicator={false}>
-        {/* Banner */}
         <View style={styles.heroBanner}>
           <View style={styles.heroIconCircle}>
             <MaterialIcons name="gavel" size={30} color="#7c3aed" />
           </View>
           <View style={styles.heroBannerText}>
-            <Text style={styles.heroBannerTitle}>Terms & Conditions</Text>
-            <Text style={styles.heroBannerDate}>Last updated: September 2025</Text>
+            <Text style={styles.heroBannerTitle}>{t('support:terms.bannerTitle')}</Text>
+            <Text style={styles.heroBannerDate}>{t('support:terms.lastUpdated')}</Text>
           </View>
         </View>
 
-        {SECTIONS.map((section, i) => (
-          <View key={i} style={styles.sectionCard}>
-            <Text style={styles.sectionTitle}>{section.title}</Text>
-            <Text style={styles.sectionBody}>{section.body}</Text>
+        {TERMS_SECTION_KEYS.map((section) => (
+          <View key={section.title} style={styles.sectionCard}>
+            <Text style={styles.sectionTitle}>{t(section.title)}</Text>
+            <Text style={styles.sectionBody}>{t(section.body)}</Text>
           </View>
         ))}
       </ScrollView>

@@ -13,6 +13,8 @@ export function storeResponse(store: Store) {
     address: store.address,
     tax_enabled: store.taxEnabled,
     tax_rate: store.taxRate,
+    currency_code: store.currencyCode,
+    currency_symbol: store.currencySymbol,
     created_at: store.createdAt,
   };
 }
@@ -33,6 +35,8 @@ export function userResponse(user: UserWithStore, token?: string) {
     store_phone: user.store?.phone ?? null,
     tax_enabled: user.store?.taxEnabled ?? true,
     tax_rate: user.store?.taxRate ?? "8.00",
+    currency_code: user.store?.currencyCode ?? "USD",
+    currency_symbol: user.store?.currencySymbol ?? "$",
     ...(token ? { token } : {}),
   };
 }
