@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import {
   StyleSheet,
   View,
@@ -14,45 +14,35 @@ import {
 } from 'react-native';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
+import { useTranslation } from 'react-i18next';
 import { MaterialIcons } from '@expo/vector-icons';
-import { store } from '@/constants/store';
+import { useProfile } from '@/hooks/use-profile';
 
 export default function ShopAddressScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
-  const userSession = store.currentUser;
+  const { t } = useTranslation(['common', 'shop']);
+  const { user, saveProfile, toastMsg, showToast } = useProfile();
 
-  const [businessAddress, setBusinessAddress] = useState(userSession?.businessAddress || '');
-  const [shopName] = useState(userSession?.shopName || 'SmartPOS Store');
-  const [phone] = useState(userSession?.phone || '');
-  const [gstNumber] = useState(userSession?.gstNumber || '');
+  const [businessAddress, setBusinessAddress] = useState(user?.businessAddress || '');
+  const [shopName] = useState(user?.shopName || 'SmartPOS Store');
+  const [phone] = useState(user?.phone || '');
+  const [gstNumber] = useState(user?.gstNumber || '');
   const [saving, setSaving] = useState(false);
-  const [toastMsg, setToastMsg] = useState<string | null>(null);
-
-  useEffect(() => {
-    if (userSession?.businessAddress) {
-      setBusinessAddress(userSession.businessAddress);
-    }
-  }, [userSession]);
-
-  const showToast = (msg: string) => {
-    setToastMsg(msg);
-    setTimeout(() => setToastMsg(null), 2500);
-  };
 
   const handleSave = async () => {
     Keyboard.dismiss();
     setSaving(true);
     try {
-      await store.updateUserProfile({
+      await saveProfile({
         businessAddress: businessAddress.trim(),
       });
-      showToast('Store address updated!');
+      showToast(t('shop:address.toastUpdated'));
       setTimeout(() => {
         router.back();
       }, 500);
-    } catch (err: any) {
-      Alert.alert('Update Failed', err.message || 'Could not update address.');
+    } catch {
+      Alert.alert(t('common:alerts.error'), t('shop:address.updateFailed'));
     } finally {
       setSaving(false);
     }
@@ -60,7 +50,6 @@ export default function ShopAddressScreen() {
 
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
-      {/* Toast */}
       {toastMsg && (
         <View style={styles.floatingToast}>
           <MaterialIcons name="check-circle" size={18} color="#22c55e" />
@@ -68,12 +57,11 @@ export default function ShopAddressScreen() {
         </View>
       )}
 
-      {/* Header */}
       <View style={styles.header}>
         <TouchableOpacity onPress={() => router.back()} style={styles.backBtn} activeOpacity={0.7}>
           <MaterialIcons name="arrow-back" size={22} color="#0f172a" />
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>Store Location</Text>
+        <Text style={styles.headerTitle}>{t('shop:address.title')}</Text>
         <TouchableOpacity
           onPress={handleSave}
           disabled={saving}
@@ -83,7 +71,7 @@ export default function ShopAddressScreen() {
           {saving ? (
             <ActivityIndicator size="small" color="#004ac6" />
           ) : (
-            <Text style={styles.headerSaveText}>Save</Text>
+            <Text style={styles.headerSaveText}>{t('common:actions.save')}</Text>
           )}
         </TouchableOpacity>
       </View>
@@ -94,29 +82,27 @@ export default function ShopAddressScreen() {
           style={styles.contentWrapper}
         >
           <View style={styles.body}>
-            {/* Banner */}
             <View style={styles.banner}>
               <View style={styles.iconCircle}>
                 <MaterialIcons name="location-on" size={26} color="#e11d48" />
               </View>
               <View style={styles.bannerTextCol}>
-                <Text style={styles.bannerTitle}>Physical Store Address</Text>
+                <Text style={styles.bannerTitle}>{t('shop:address.bannerTitle')}</Text>
                 <Text style={styles.bannerSub}>
-                  Printed in receipt headers and visible on shared invoices.
+                  {t('shop:address.bannerSub')}
                 </Text>
               </View>
             </View>
 
-            {/* Address Input */}
-            <Text style={styles.sectionHeading}>Enter Store Address</Text>
+            <Text style={styles.sectionHeading}>{t('shop:address.sectionHeading')}</Text>
             <View style={styles.card}>
               <View style={styles.fieldLabelRow}>
                 <MaterialIcons name="business" size={16} color="#004ac6" />
-                <Text style={styles.fieldLabel}>Business Location & Full Address</Text>
+                <Text style={styles.fieldLabel}>{t('shop:address.fieldLabel')}</Text>
               </View>
               <TextInput
                 style={[styles.textInput, styles.textArea]}
-                placeholder="e.g. Shop #12, 1st Floor, Royal Arcade, Anna Salai, Chennai, Tamil Nadu - 600002"
+                placeholder={t('shop:address.placeholder')}
                 placeholderTextColor="#94a3b8"
                 value={businessAddress}
                 onChangeText={setBusinessAddress}
@@ -126,12 +112,11 @@ export default function ShopAddressScreen() {
               />
             </View>
 
-            {/* Live Thermal Receipt Header Preview */}
-            <Text style={styles.sectionHeading}>Receipt Preview</Text>
+            <Text style={styles.sectionHeading}>{t('shop:address.receiptPreview')}</Text>
             <View style={styles.receiptPreviewCard}>
               <Text style={styles.receiptStoreName}>{shopName.toUpperCase()}</Text>
               <Text style={styles.receiptAddressText} numberOfLines={2}>
-                {businessAddress.trim() || 'No. 123, Main Market Road, City, State - 000000'}
+                {businessAddress.trim() || t('shop:address.defaultAddressPreview')}
               </Text>
               <View style={styles.receiptMetaRow}>
                 {phone ? <Text style={styles.receiptMetaText}>Ph: {phone}</Text> : null}
@@ -140,7 +125,6 @@ export default function ShopAddressScreen() {
             </View>
           </View>
 
-          {/* Bottom Fixed Save Button */}
           <View style={[styles.bottomBar, { paddingBottom: Math.max(insets.bottom, 16) }]}>
             <TouchableOpacity
               style={[styles.saveButton, saving && { opacity: 0.75 }]}
@@ -153,7 +137,7 @@ export default function ShopAddressScreen() {
               ) : (
                 <>
                   <MaterialIcons name="save" size={20} color="#ffffff" />
-                  <Text style={styles.saveButtonText}>Save Store Address</Text>
+                  <Text style={styles.saveButtonText}>{t('shop:address.saveButton')}</Text>
                 </>
               )}
             </TouchableOpacity>
@@ -244,7 +228,7 @@ const styles = StyleSheet.create({
     borderRadius: 14,
     padding: 14,
     gap: 12,
-    marginBottom: 16,
+    marginBottom: 20,
   },
   iconCircle: {
     width: 44,
@@ -260,11 +244,11 @@ const styles = StyleSheet.create({
   bannerTitle: {
     fontSize: 14,
     fontWeight: '700',
-    color: '#9f1239',
+    color: '#881337',
   },
   bannerSub: {
     fontSize: 12,
-    color: '#be123c',
+    color: '#9f1239',
     marginTop: 2,
     lineHeight: 16,
   },
@@ -277,10 +261,10 @@ const styles = StyleSheet.create({
   card: {
     backgroundColor: '#ffffff',
     borderRadius: 14,
-    padding: 14,
+    padding: 16,
     borderWidth: 1,
     borderColor: '#e2e8f0',
-    marginBottom: 16,
+    marginBottom: 20,
   },
   fieldLabelRow: {
     flexDirection: 'row',
@@ -304,38 +288,44 @@ const styles = StyleSheet.create({
     color: '#0f172a',
   },
   textArea: {
-    height: 72,
+    minHeight: 80,
+    lineHeight: 20,
   },
   receiptPreviewCard: {
-    backgroundColor: '#ffffff',
-    borderRadius: 14,
-    borderWidth: 1,
-    borderColor: '#e2e8f0',
+    backgroundColor: '#fdfbf7',
+    borderWidth: 1.5,
+    borderColor: '#e2d9cc',
     borderStyle: 'dashed',
-    padding: 12,
+    borderRadius: 12,
+    padding: 16,
     alignItems: 'center',
+    marginBottom: 16,
   },
   receiptStoreName: {
-    fontSize: 13,
+    fontSize: 14,
     fontWeight: '800',
-    color: '#0f172a',
-    letterSpacing: 0.8,
-    marginBottom: 2,
+    color: '#1c1917',
+    letterSpacing: 1.2,
+    marginBottom: 4,
+    textAlign: 'center',
   },
   receiptAddressText: {
-    fontSize: 11,
-    color: '#475569',
+    fontSize: 12,
+    color: '#57534e',
     textAlign: 'center',
-    lineHeight: 15,
+    lineHeight: 16,
+    marginBottom: 6,
   },
   receiptMetaRow: {
     flexDirection: 'row',
     gap: 12,
-    marginTop: 4,
+    justifyContent: 'center',
+    flexWrap: 'wrap',
   },
   receiptMetaText: {
-    fontSize: 10,
-    color: '#64748b',
+    fontSize: 11,
+    fontWeight: '600',
+    color: '#78716c',
   },
   bottomBar: {
     padding: 16,

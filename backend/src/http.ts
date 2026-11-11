@@ -15,7 +15,7 @@ export function parse<T>(schema: ZodType<T>, value: unknown): T {
   return schema.parse(value);
 }
 
-export function errorHandler(error: unknown, _request: Request, response: Response, _next: NextFunction): void {
+export function errorHandler(error: unknown, request: Request, response: Response, _next: NextFunction): void {
   if (error instanceof ZodError) {
     response
       .status(422)
@@ -26,5 +26,6 @@ export function errorHandler(error: unknown, _request: Request, response: Respon
     response.status(error.statusCode).json({ detail: error.message });
     return;
   }
+  request.log.error({ err: error }, "unhandled error");
   response.status(500).json({ detail: "Internal server error" });
 }

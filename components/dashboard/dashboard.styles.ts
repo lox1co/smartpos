@@ -1,0 +1,302 @@
+import { StyleSheet } from 'react-native';
+
+export const styles = StyleSheet.create({
+  outerContainer: {
+    flex: 1,
+    backgroundColor: '#f8f9ff',
+  },
+  header: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: 20,
+    paddingVertical: 14,
+    backgroundColor: '#ffffff',
+    borderBottomWidth: 1,
+    borderBottomColor: 'rgba(195,198,215,0.3)',
+  },
+  headerTitle: {
+    fontSize: 20,
+    fontWeight: '800',
+    color: '#131b2e',
+    letterSpacing: -0.5,
+  },
+  headerActions: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  headerIconButton: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: '#eef0fa',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  scrollContainer: {
+    paddingBottom: 90,
+  },
+  mainContainer: {
+    padding: 16,
+    gap: 16,
+  },
+  bentoGrid: {
+    gap: 12,
+  },
+  bentoCard: {
+    backgroundColor: '#ffffff',
+    borderRadius: 16,
+    padding: 16,
+    borderWidth: 1,
+    borderColor: 'rgba(195,198,215,0.3)',
+  },
+  salesCard: {
+    backgroundColor: '#ffffff',
+  },
+  bentoLabel: {
+    fontSize: 13,
+    color: '#737686',
+    fontWeight: '600',
+  },
+  salesValue: {
+    fontSize: 28,
+    fontWeight: '800',
+    color: '#131b2e',
+    marginVertical: 4,
+  },
+  trendContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    marginTop: 2,
+  },
+  trendText: {
+    fontSize: 12,
+    fontWeight: '700',
+  },
+  bentoRow: {
+    flexDirection: 'row',
+    gap: 12,
+  },
+  halfCard: {
+    flex: 1,
+  },
+  bentoValue: {
+    fontSize: 20,
+    fontWeight: '800',
+    color: '#131b2e',
+    marginTop: 4,
+  },
+  actionsSection: {
+    gap: 10,
+  },
+  sectionLabel: {
+    fontSize: 14,
+    fontWeight: '700',
+    color: '#131b2e',
+    paddingHorizontal: 4,
+  },
+  actionsScroll: {
+    gap: 10,
+  },
+  actionButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#ffffff',
+    borderRadius: 12,
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    borderWidth: 1,
+    borderColor: 'rgba(195,198,215,0.3)',
+    gap: 8,
+  },
+  primaryActionButton: {
+    backgroundColor: '#004fe6',
+    borderColor: '#004fe6',
+  },
+  actionIcon: {
+    marginRight: 2,
+  },
+  primaryActionText: {
+    color: '#ffffff',
+    fontWeight: '700',
+    fontSize: 14,
+  },
+  actionText: {
+    color: '#131b2e',
+    fontWeight: '600',
+    fontSize: 14,
+  },
+  alertsCard: {
+    backgroundColor: '#ffffff',
+    borderRadius: 16,
+    padding: 16,
+    borderWidth: 1,
+    borderColor: 'rgba(195,198,215,0.3)',
+  },
+  alertsHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 12,
+  },
+  alertsTitleContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+  },
+  alertsTitle: {
+    fontSize: 15,
+    fontWeight: '700',
+    color: '#ba1a1a',
+  },
+  alertsBadge: {
+    backgroundColor: '#ffebee',
+    borderRadius: 12,
+    paddingHorizontal: 8,
+    paddingVertical: 2,
+  },
+  alertsBadgeText: {
+    fontSize: 11,
+    fontWeight: '700',
+    color: '#ba1a1a',
+  },
+  alertList: {
+    gap: 8,
+  },
+  alertItem: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    paddingVertical: 6,
+    borderBottomWidth: 1,
+    borderBottomColor: '#f0f3ff',
+  },
+  lastAlertItem: {
+    borderBottomWidth: 0,
+  },
+  alertItemName: {
+    fontSize: 13,
+    color: '#131b2e',
+    fontWeight: '600',
+  },
+  alertItemQty: {
+    fontSize: 13,
+    color: '#ba1a1a',
+    fontWeight: '700',
+  },
+  emptyAlertText: {
+    fontSize: 13,
+    color: '#737686',
+    textAlign: 'center',
+    paddingVertical: 8,
+  },
+  chartCard: {
+    backgroundColor: '#ffffff',
+    borderRadius: 16,
+    padding: 16,
+    borderWidth: 1,
+    borderColor: 'rgba(195,198,215,0.3)',
+  },
+  chartTitle: {
+    fontSize: 15,
+    fontWeight: '700',
+    color: '#131b2e',
+    marginBottom: 12,
+  },
+  chartContainer: {
+    height: 120,
+    width: '100%',
+  },
+  chartLabelsRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginTop: 8,
+    paddingHorizontal: 4,
+  },
+  chartLabel: {
+    fontSize: 11,
+    color: '#737686',
+  },
+  transactionsCard: {
+    backgroundColor: '#ffffff',
+    borderRadius: 16,
+    padding: 16,
+    borderWidth: 1,
+    borderColor: 'rgba(195,198,215,0.3)',
+  },
+  transactionsHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 12,
+  },
+  transactionsTitle: {
+    fontSize: 15,
+    fontWeight: '700',
+    color: '#131b2e',
+  },
+  seeAllLink: {
+    fontSize: 13,
+    fontWeight: '700',
+    color: '#004fe6',
+  },
+  transactionList: {
+    gap: 10,
+  },
+  transactionItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: 6,
+    gap: 12,
+  },
+  lastTransactionItem: {},
+  transactionIconContainer: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: '#eef0fa',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  transactionDetails: {
+    flex: 1,
+  },
+  transactionOrder: {
+    fontSize: 13,
+    fontWeight: '700',
+    color: '#131b2e',
+  },
+  transactionTime: {
+    fontSize: 11,
+    color: '#737686',
+    marginTop: 2,
+  },
+  transactionAmount: {
+    fontSize: 14,
+    fontWeight: '700',
+    color: '#131b2e',
+  },
+  emptyTransactionsText: {
+    fontSize: 13,
+    color: '#737686',
+    textAlign: 'center',
+    paddingVertical: 12,
+  },
+  fab: {
+    position: 'absolute',
+    bottom: 24,
+    right: 20,
+    backgroundColor: '#004fe6',
+    width: 54,
+    height: 54,
+    borderRadius: 27,
+    justifyContent: 'center',
+    alignItems: 'center',
+    shadowColor: '#004fe6',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.35,
+    shadowRadius: 8,
+    elevation: 6,
+  },
+});

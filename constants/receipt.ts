@@ -1,10 +1,38 @@
-import type { GeneratedBill } from './store';
+import { useSessionStore } from '@/stores/session-store';
 
-/**
- * India GST split: for an intra-state sale the total GST is split evenly into
- * CGST + SGST. Inter-state IGST isn't modeled here (single-store retail
- * default). Rounded so the two halves always sum back to the original tax.
- */
+export interface BillItem {
+  id?: number | string;
+  product_id?: number | string;
+  product_name: string;
+  quantity: number;
+  price: number;
+}
+
+export interface GeneratedBill {
+  store_id: string;
+  invoice_number: string;
+  shop_name: string;
+  shop_address?: string;
+  shop_phone?: string;
+  gst_number?: string;
+  cashier_name?: string;
+  payment_method: string;
+  payment_status: string;
+  subtotal: number;
+  discount: number;
+  tax: number;
+  total: number;
+  created_at: string;
+  customer_name?: string;
+  customer_phone?: string;
+  customer_credit_balance?: number;
+  amount_paid?: number;
+  change_due?: number;
+  pending?: boolean;
+  client_id?: string;
+  items: BillItem[];
+}
+
 export function gstSplit(tax: number): { cgst: number; sgst: number } {
   const safe = tax || 0;
   const half = Math.round((safe / 2) * 100) / 100;
@@ -17,7 +45,7 @@ function escapeHtml(value: unknown): string {
     .replace(/</g, '&lt;')
     .replace(/>/g, '&gt;')
     .replace(/"/g, '&quot;')
-    .replace(/'/g, '&#39;');
+    .replace(/'/g, '&#039;');
 }
 
 const MONTH_NAMES = [
@@ -27,11 +55,6 @@ const MONTH_NAMES = [
 
 const pad2 = (n: number) => String(n).padStart(2, '0');
 
-/**
- * Deterministic bill date format: "DD <Full Month> YYYY, HH:MM AM/PM",
- * e.g. "08 September 2026, 02:30 PM". Built by hand instead of
- * toLocaleString so the output is identical on Android, iOS and web.
- */
 export function formatBillDate(iso?: string | Date): string {
   if (!iso) return '';
   const d = typeof iso === 'string' ? new Date(iso) : iso;
@@ -42,27 +65,32 @@ export function formatBillDate(iso?: string | Date): string {
   return `${pad2(d.getDate())} ${MONTH_NAMES[d.getMonth()]} ${d.getFullYear()}, ${pad2(hours)}:${pad2(d.getMinutes())} ${ampm}`;
 }
 
-function formatDate(iso?: string): string {
-  if (!iso) return '';
-  const d = new Date(iso);
-  if (isNaN(d.getTime())) return escapeHtml(iso);
-  return escapeHtml(formatBillDate(d));
+function formatReceiptDate(iso: string): string {
+  try {
+    const d = new Date(iso);
+    if (isNaN(d.getTime())) return iso;
+    return d.toLocaleString('en-IN', {
+      day: '2-digit',
+      month: 'short',
+      year: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
+      hour12: true,
+    });
+  } catch {
+    return iso;
+  }
 }
 
 export interface ReceiptOptions {
-  /** Currency symbol to render amounts with. Defaults to the rupee sign. */
   currency?: string;
+  footerMessage?: string;
 }
 
-/**
- * Build a self-contained HTML receipt for expo-print (print dialog or PDF).
- * No external assets/images — iOS WKWebView can't load local asset URLs when
- * printing HTML, so everything is inline text/CSS.
- */
 export function buildReceiptHtml(bill: GeneratedBill, opts: ReceiptOptions = {}): string {
-  const currency = opts.currency ?? '₹';
+  const currency = opts.currency ?? useSessionStore.getState().currentUser?.currencySymbol ?? '$';
   const money = (n: number) => `${currency}${(n || 0).toFixed(2)}`;
-  const hasGst = !!(bill.gst_number && String(bill.gst_number).trim());
+  const hasGst = Boolean(bill.gst_number && String(bill.gst_number).trim());
 
   const itemRows = (bill.items || [])
     .map((it) => {
@@ -70,105 +98,194 @@ export function buildReceiptHtml(bill: GeneratedBill, opts: ReceiptOptions = {})
       return `
         <tr>
           <td class="name">${escapeHtml(it.product_name)}</td>
-          <td class="num">${(it.quantity ?? 0)}</td>
+          <td class="num">${it.quantity ?? 0}</td>
           <td class="num">${money(it.price)}</td>
-          <td class="num">${money(lineTotal)}</td>
+          <td class="num bold">${money(lineTotal)}</td>
         </tr>`;
     })
     .join('');
 
+  const split = gstSplit(bill.tax);
+  const gstRows =
+    bill.tax > 0
+      ? `
+        <div class="row muted">
+          <span>CGST</span>
+          <span>${money(split.cgst)}</span>
+        </div>
+        <div class="row muted">
+          <span>SGST</span>
+          <span>${money(split.sgst)}</span>
+        </div>`
+      : '';
+
+  const discountRow =
+    (bill.discount || 0) > 0
+      ? `
+        <div class="row discount">
+          <span>Discount</span>
+          <span>-${money(bill.discount)}</span>
+        </div>`
+      : '';
+
+  const cashDetails =
+    bill.payment_method === 'CASH' && bill.amount_paid !== undefined
+      ? `
+        <div class="row muted">
+          <span>Cash Tendered</span>
+          <span>${money(bill.amount_paid)}</span>
+        </div>
+        <div class="row muted">
+          <span>Change Due</span>
+          <span>${money(bill.change_due ?? 0)}</span>
+        </div>`
+      : '';
+
+  const creditDetails =
+    bill.payment_method === 'CREDIT'
+      ? `
+        <div class="row credit-alert">
+          <span>Balance Added to Khata</span>
+          <span>${money(bill.total)}</span>
+        </div>
+        ${
+          bill.customer_credit_balance !== undefined
+            ? `
+        <div class="row credit-alert bold">
+          <span>Total Balance Due</span>
+          <span>${money(bill.customer_credit_balance)}</span>
+        </div>`
+            : ''
+        }`
+      : '';
+
   const customerBlock =
     bill.customer_name || bill.customer_phone
-      ? `<div class="row"><span>Customer</span><span>${escapeHtml(
-          bill.customer_name || '',
-        )}${bill.customer_phone ? ` · ${escapeHtml(bill.customer_phone)}` : ''}</span></div>`
+      ? `
+        <div class="section customer">
+          <div class="section-title">Customer</div>
+          ${bill.customer_name ? `<div>${escapeHtml(bill.customer_name)}</div>` : ''}
+          ${bill.customer_phone ? `<div>${escapeHtml(bill.customer_phone)}</div>` : ''}
+        </div>`
       : '';
 
-  const taxBlock = (bill.tax && bill.tax > 0)
-    ? `<div class="row"><span>Tax</span><span>${money(bill.tax)}</span></div>`
-    : '';
-
-  const tenderedBlock =
-    bill.amount_paid !== undefined
-      ? `<div class="row"><span>Cash tendered</span><span>${money(bill.amount_paid)}</span></div>
-         <div class="row"><span>Change due</span><span>${money(bill.change_due ?? 0)}</span></div>`
-      : '';
+  const footer = escapeHtml(opts.footerMessage || 'Thank you for your visit!');
 
   return `<!DOCTYPE html>
 <html>
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Receipt ${escapeHtml(bill.invoice_number)}</title>
 <style>
   * { box-sizing: border-box; }
-  body { font-family: -apple-system, Roboto, Helvetica, Arial, sans-serif; color: #111; margin: 0; padding: 24px; }
-  .receipt { max-width: 380px; margin: 0 auto; }
+  @page { margin: 4mm; size: auto; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, monospace;
+    font-size: 11px;
+    line-height: 1.35;
+    color: #000;
+    background: #fff;
+    margin: 0 auto;
+    padding: 8px 6px 16px 6px;
+    max-width: 320px;
+  }
   .center { text-align: center; }
-  .shop { font-size: 20px; font-weight: 700; }
-  .muted { color: #555; font-size: 12px; }
-  .divider { border: none; border-top: 1px dashed #999; margin: 12px 0; }
-  .row { display: flex; justify-content: space-between; font-size: 13px; margin: 3px 0; }
-  .row span:last-child { text-align: right; }
-  table { width: 100%; border-collapse: collapse; margin-top: 6px; }
-  th { text-align: left; font-size: 11px; color: #555; text-transform: uppercase; border-bottom: 1px solid #ccc; padding: 4px 0; }
-  td { font-size: 13px; padding: 5px 0; vertical-align: top; }
-  td.num, th.num { text-align: right; white-space: nowrap; }
-  td.name { padding-right: 8px; }
-  .total { font-size: 16px; font-weight: 700; }
-  .badge { display: inline-block; font-size: 11px; padding: 2px 8px; border: 1px solid #999; border-radius: 999px; }
-  .footer { margin-top: 16px; font-size: 12px; }
+  .bold { font-weight: 700; }
+  .muted { color: #555; }
+  .shop-name { font-size: 15px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.5px; }
+  .meta { font-size: 10px; margin-top: 2px; }
+  .divider { border-top: 1px dashed #000; margin: 8px 0; }
+  .double-divider { border-top: 2px solid #000; margin: 8px 0; }
+  .section { margin-bottom: 6px; }
+  .section-title { font-size: 9px; text-transform: uppercase; font-weight: 700; color: #555; margin-bottom: 2px; }
+  .row { display: flex; justify-content: space-between; align-items: baseline; margin: 2px 0; }
+  .row.total { font-size: 14px; font-weight: 800; margin: 4px 0; }
+  .row.discount { color: #000; font-weight: 600; }
+  .row.credit-alert { color: #000; }
+  table.items { width: 100%; border-collapse: collapse; margin: 4px 0; font-size: 10.5px; }
+  table.items th {
+    font-size: 9px;
+    text-transform: uppercase;
+    border-bottom: 1px dashed #000;
+    padding: 3px 0;
+    font-weight: 700;
+  }
+  table.items td { padding: 3px 0; vertical-align: top; }
+  table.items td.name { text-align: left; word-break: break-word; }
+  table.items td.num, table.items th.num { text-align: right; white-space: nowrap; }
+  table.items th:first-child, table.items td:first-child { width: 45%; }
+  table.items th:nth-child(2), table.items td:nth-child(2) { width: 15%; }
+  table.items th:nth-child(3), table.items td:nth-child(3) { width: 20%; }
+  table.items th:last-child, table.items td:last-child { width: 20%; }
+  .footer { margin-top: 12px; font-size: 10px; }
 </style>
 </head>
 <body>
-  <div class="receipt">
-    <div class="center">
-      <div class="shop">${escapeHtml(bill.shop_name || 'SmartPOS Store')}</div>
-      ${bill.shop_address ? `<div class="muted">${escapeHtml(bill.shop_address)}</div>` : ''}
-      ${bill.shop_phone ? `<div class="muted">Ph: ${escapeHtml(bill.shop_phone)}</div>` : ''}
-      ${hasGst ? `<div class="muted">GSTIN: ${escapeHtml(bill.gst_number)}</div>` : ''}
-    </div>
-    <hr class="divider" />
-    <div class="row"><span>Invoice</span><span>${escapeHtml(bill.invoice_number)}</span></div>
-    <div class="row"><span>Date</span><span>${formatDate(bill.created_at)}</span></div>
-    ${customerBlock}
-    <table>
-      <thead>
-        <tr>
-          <th>Item</th>
-          <th class="num">Qty</th>
-          <th class="num">Rate</th>
-          <th class="num">Amount</th>
-        </tr>
-      </thead>
-      <tbody>${itemRows}</tbody>
-    </table>
-    <hr class="divider" />
-    <div class="row"><span>Subtotal</span><span>${money(bill.subtotal)}</span></div>
-    ${bill.discount ? `<div class="row"><span>Discount</span><span>- ${money(bill.discount)}</span></div>` : ''}
-    ${taxBlock}
-    <div class="row total"><span>Total</span><span>${money(bill.total)}</span></div>
-    ${tenderedBlock}
-    ${(bill.payment_method === 'CREDIT' || bill.payment_status === 'CREDIT' || bill.customer_credit_balance !== undefined) ? `
-    <div style="background: #fffbeb; border: 1px solid #fde68a; border-radius: 6px; padding: 8px 10px; margin: 10px 0;">
-      <div class="row" style="font-weight: 600; color: #b45309; margin: 2px 0;">
-        <span>Current Bill (Unpaid)</span>
-        <span>${money(bill.total)}</span>
-      </div>
-      ${bill.customer_credit_balance !== undefined ? `
-      <div class="row" style="font-weight: 800; font-size: 14px; color: #92400e; margin-top: 5px; border-top: 1px dashed #fde68a; padding-top: 5px;">
-        <span>Total Outstanding Due</span>
-        <span>${money(bill.customer_credit_balance)}</span>
-      </div>` : ''}
-    </div>` : ''}
-    <hr class="divider" />
+  <div class="center section">
+    <div class="shop-name">${escapeHtml(bill.shop_name || 'SmartPOS')}</div>
+    ${bill.shop_address ? `<div class="meta">${escapeHtml(bill.shop_address)}</div>` : ''}
+    ${bill.shop_phone ? `<div class="meta">Ph: ${escapeHtml(bill.shop_phone)}</div>` : ''}
+    ${hasGst ? `<div class="meta bold">GSTIN: ${escapeHtml(bill.gst_number)}</div>` : ''}
+  </div>
+
+  <div class="divider"></div>
+
+  <div class="section">
     <div class="row">
-      <span>Payment</span>
-      <span><span class="badge">${escapeHtml(bill.payment_method)}</span> ${escapeHtml(bill.payment_status || '')}</span>
+      <span>Invoice: <span class="bold">${escapeHtml(bill.invoice_number)}</span></span>
+      <span>${escapeHtml(bill.payment_method)}</span>
     </div>
-    <div class="center footer">
-      <div>Thank you for your business!</div>
-      ${bill.pending ? '<div class="muted">* Offline sale — pending sync</div>' : ''}
+    <div class="row muted">
+      <span>Date: ${formatReceiptDate(bill.created_at)}</span>
+      <span>${escapeHtml(bill.cashier_name ? `Cashier: ${bill.cashier_name}` : '')}</span>
     </div>
+  </div>
+
+  ${customerBlock}
+
+  <div class="divider"></div>
+
+  <table class="items">
+    <thead>
+      <tr>
+        <th style="text-align:left">Item</th>
+        <th class="num">Qty</th>
+        <th class="num">Rate</th>
+        <th class="num">Total</th>
+      </tr>
+    </thead>
+    <tbody>
+      ${itemRows}
+    </tbody>
+  </table>
+
+  <div class="divider"></div>
+
+  <div class="section">
+    <div class="row">
+      <span>Subtotal</span>
+      <span>${money(bill.subtotal)}</span>
+    </div>
+    ${discountRow}
+    <div class="row">
+      <span>Tax</span>
+      <span>${money(bill.tax)}</span>
+    </div>
+    ${gstRows}
+    <div class="double-divider"></div>
+    <div class="row total">
+      <span>GRAND TOTAL</span>
+      <span>${money(bill.total)}</span>
+    </div>
+    <div class="double-divider"></div>
+    ${cashDetails}
+    ${creditDetails}
+  </div>
+
+  <div class="center footer">
+    <div>${footer}</div>
+    <div class="muted" style="font-size: 8px; margin-top: 4px;">SmartPOS • Offline-First POS</div>
   </div>
 </body>
 </html>`;
